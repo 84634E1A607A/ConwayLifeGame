@@ -14,7 +14,6 @@ namespace ConwayLifeGame
             public Node next;
             public Node() { y = 0; state = false; count = 0; next = null; }
         };
-
         public class Head
         {
             public int x;
@@ -22,15 +21,13 @@ namespace ConwayLifeGame
             public Head next;
             public Head() { x = 0; node = new Node(); next = null; }
         };
-
         public class Point
         {
             public int x;
             public int y;
             public Point() { x = y = 0; }
-            public Point(int x, int y) { this.x = x; this.y = y}
+            public Point(int x, int y) { this.x = x; this.y = y; }
         }
-
         private class Builtin
         {
             public Point[] points;
@@ -39,10 +36,16 @@ namespace ConwayLifeGame
             public byte width;
             public Builtin() { size = 0; height = 0; width = 0; }
         }
-
         private Head cur;
         private Head nxt;
         private Builtin[] builtins;
+        public enum AddRegionState {
+            insert,
+            delete,
+            random
+        };
+        AddRegionState add_region_state;
+        public int selected_builtin, selected_direction;
 
         public Map() {
             cur = new Head();
@@ -75,8 +78,8 @@ namespace ConwayLifeGame
             }
             return px;
         }
-        //type: {0: 1.0, 0.1; 1: 0,1.1; 2: 0,1.0}
-        public Head Change(int xpos, int ypos, int type, Head acce) {
+        public Head Change(int xpos, int ypos, int type = 0, Head acce = null)     //type: {0: 1.0, 0.1; 1: 0,1.1; 2: 0,1.0}
+        {
             Head px = cur;
             if (acce != null && acce.x <= xpos) px = acce;
             while (px.next != null && px.next.x <= xpos) px = px.next;
@@ -179,14 +182,84 @@ namespace ConwayLifeGame
             //change_xpivot(); change_ypivot();
         }
         private void Clear(Head h) {
-            h.next = null; 
+            h.next = null;
         }
-        public void AddBuiltin(int, int, uint? = null, uint? = null);
-        public void AddDeleteRegion(int, int, int, int, bool, bool);
+        public void AddBuiltin(int xpos, int ypos, byte b = 0xff, byte d = 0xff) {
+            if (b >= 10 || d >= 8) return;
+            byte s = builtins[b].size, l = (byte)(builtins[b].width - 1), h = (byte)(builtins[b].height - 1);
+            Point[] cur = builtins[b].points;
+            switch (d) {
+                case 0:
+                    for (byte i = 0; i < s; i++) Change(xpos + cur[i].x, ypos + cur[i].y, 1);
+                    break;
+                case 1:
+                    for (byte i = 0; i < s; i++) Change(xpos + cur[i].x, ypos + h - cur[i].y, 1);
+                    break;
+                case 2:
+                    for (byte i = 0; i < s; i++) Change(xpos + l - cur[i].x, ypos + cur[i].y, 1);
+                    break;
+                case 3:
+                    for (byte i = 0; i < s; i++) Change(xpos + l - cur[i].x, ypos + h - cur[i].y, 1);
+                    break;
+                case 4:
+                    for (byte i = 0; i < s; i++) Change(xpos + cur[i].y, ypos + cur[i].x, 1);
+                    break;
+                case 5:
+                    for (byte i = 0; i < s; i++) Change(xpos + cur[i].y, ypos + l - cur[i].x, 1);
+                    break;
+                case 6:
+                    for (byte i = 0; i < s; i++) Change(xpos + h - cur[i].y, ypos + cur[i].x, 1);
+                    break;
+                case 7:
+                    for (byte i = 0; i < s; i++) Change(xpos + h - cur[i].y, ypos + l - cur[i].x, 1);
+                    break;
+            }
+        }
+        public void AddDeleteRegion(int left, int top, int right, int bottom, AddRegionState? state = null)
+        {
+            if (state == null) state = add_region_state;
+            Head acce = null;
+            switch (state)
+            {
+                case AddRegionState.random:
+                    {
+                        Random r = new Random();
+                        for (int x = left; x <= right; x++)
+                            for (int y = bottom; y >= top; y--)
+                                acce = Change(x, y, r.Next(0, 2), acce);
+                        break;
+                    }
+                case AddRegionState.insert:
+                    {
+                        for (int x = left; x <= right; x++)
+                            for (int y = bottom; y >= top; y--)
+                                acce = Change(x, y, 1, acce);
+                        break;
+                    }
+
+                case AddRegionState.delete:
+                    {
+                        for (int x = left; x <= right; x++)
+                            for (int y = bottom; y >= top; y--)
+                                acce = Change(x, y, 2, acce);
+                        break;
+                    }
+                default: break;
+            }
+        }
         //public void Draw();
-        public void GetBulitinInfo(out int, out int, out int, out int, uint? = null);
+        public void GetBulitinInfo(out int width, out int height, int b = -1)
+        {
+            if (b == -1) b = selected_builtin;
+            if (b < 0 || b > 10) { width = 0; height = 0; return; }
+            width = builtins[b].width;
+            height = builtins[b].height;
+            return;
+        }
         private void InitBuiltins()
         {
+            builtins = new Builtin[9];
+
             //{1,1,1},
             //{1,0,0},
             //{0,1,0}

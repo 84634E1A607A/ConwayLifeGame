@@ -17,5 +17,10 @@ namespace ConwayLifeGame
             InitializeComponent();
         }
 
+        private void HelpAbout_Click(object sender, EventArgs e)
+        {
+            About aboutDlg = new About();
+            aboutDlg.ShowDialog();
+        }
     }
 }
