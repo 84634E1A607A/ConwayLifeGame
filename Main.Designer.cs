@@ -1,7 +1,7 @@
 ﻿
 namespace ConwayLifeGame
 {
-    partial class MainForm
+    partial class Main
     {
         /// <summary>
         ///  Required designer variable.
@@ -75,29 +75,35 @@ namespace ConwayLifeGame
             // 
             this.FileNewWindow.Name = "FileNewWindow";
             this.FileNewWindow.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
-            this.FileNewWindow.Size = new System.Drawing.Size(188, 22);
+            this.FileNewWindow.ShowShortcutKeys = false;
+            this.FileNewWindow.Size = new System.Drawing.Size(138, 22);
             this.FileNewWindow.Text = "&New Window";
+            this.FileNewWindow.Click += new System.EventHandler(this.FileNewWindow_Click);
             // 
             // FileOpen
             // 
             this.FileOpen.Name = "FileOpen";
             this.FileOpen.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.FileOpen.Size = new System.Drawing.Size(188, 22);
+            this.FileOpen.ShowShortcutKeys = false;
+            this.FileOpen.Size = new System.Drawing.Size(138, 22);
             this.FileOpen.Text = "&Open";
             // 
             // FileSave
             // 
             this.FileSave.Name = "FileSave";
             this.FileSave.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.FileSave.Size = new System.Drawing.Size(188, 22);
+            this.FileSave.ShowShortcutKeys = false;
+            this.FileSave.Size = new System.Drawing.Size(138, 22);
             this.FileSave.Text = "&Save";
             // 
             // FileExit
             // 
             this.FileExit.Name = "FileExit";
-            this.FileExit.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.W)));
-            this.FileExit.Size = new System.Drawing.Size(188, 22);
+            this.FileExit.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F4)));
+            this.FileExit.ShowShortcutKeys = false;
+            this.FileExit.Size = new System.Drawing.Size(138, 22);
             this.FileExit.Text = "E&xit";
+            this.FileExit.Click += new System.EventHandler(this.FileExit_Click);
             // 
             // MainMenuOptions
             // 
@@ -116,6 +122,7 @@ namespace ConwayLifeGame
             this.OptionsShowWindow.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.P)));
             this.OptionsShowWindow.Size = new System.Drawing.Size(234, 22);
             this.OptionsShowWindow.Text = "&Show Control Window";
+            this.OptionsShowWindow.Click += new System.EventHandler(this.OptionsShowWindow_Click);
             // 
             // OptionsCreateSolid
             // 
@@ -159,15 +166,16 @@ namespace ConwayLifeGame
             this.HelpHelp.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.H)));
             this.HelpHelp.Size = new System.Drawing.Size(182, 22);
             this.HelpHelp.Text = "&Help";
+            this.HelpHelp.Click += new System.EventHandler(this.HelpHelp_Click);
             // 
-            // MainForm
+            // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 397);
             this.Controls.Add(this.MainFormMenu);
             this.MainMenuStrip = this.MainFormMenu;
-            this.Name = "MainForm";
+            this.Name = "Main";
             this.Text = "Conway\'s Life Game";
             this.MainFormMenu.ResumeLayout(false);
             this.MainFormMenu.PerformLayout();

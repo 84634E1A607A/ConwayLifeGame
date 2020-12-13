@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ConwayLifeGame
 {
-    class Map
+    public static class Map
     {
         public class Node
         {
@@ -28,31 +28,30 @@ namespace ConwayLifeGame
             public Point() { x = y = 0; }
             public Point(int x, int y) { this.x = x; this.y = y; }
         }
-        private class Builtin
+        public class Builtin
         {
             public Point[] points;
             public byte size;
             public byte height;
             public byte width;
             public Builtin() { size = 0; height = 0; width = 0; }
+            public Builtin(Point[] points, byte height, byte width)
+            {
+                this.points = points; this.size = (byte)points.Length; this.height = height; this.width = width;
+            }
         }
-        private Head cur;
-        private Head nxt;
-        private Builtin[] builtins;
+        private static Head cur = new Head();
+        private static Head nxt = new Head();
+        private static Builtin[] builtins;
         public enum AddRegionState {
             insert,
             delete,
             random
         };
-        AddRegionState add_region_state;
-        public int selected_builtin, selected_direction;
-
-        public Map() {
-            cur = new Head();
-            nxt = new Head();
-            InitBuiltins();
-        }
-        private Head Add(int xpos, int ypos, Head acce)
+        public static AddRegionState add_region_state;
+        public static int selected_builtin, selected_direction, x_pivot, y_pivot, timer, scale;
+        public static bool started;
+        private static Head Add(int xpos, int ypos, Head acce)
         {
             Head px = nxt;
             if (acce.x <= xpos) px = acce;
@@ -78,7 +77,7 @@ namespace ConwayLifeGame
             }
             return px;
         }
-        public Head Change(int xpos, int ypos, int type = 0, Head acce = null)     //type: {0: 1.0, 0.1; 1: 0,1.1; 2: 0,1.0}
+        public static Head Change(int xpos, int ypos, int type = 0, Head acce = null)     //type: {0: 1.0, 0.1; 1: 0,1.1; 2: 0,1.0}
         {
             Head px = cur;
             if (acce != null && acce.x <= xpos) px = acce;
@@ -105,7 +104,7 @@ namespace ConwayLifeGame
             }
             return px;
         }
-        public void Calc()
+        public static void Calc()
         {
             Head px = cur.next, pacce = null, ptmp = null;
             while (px != null)
@@ -144,7 +143,7 @@ namespace ConwayLifeGame
         //public void DrawBuiltin();
         //public void Load(string f);
         //public void Dump(string f);
-        private Head Insert(Head p)
+        private static Head Insert(Head p)
         {
             Head pn = new Head();
             pn.next = p.next;
@@ -153,38 +152,39 @@ namespace ConwayLifeGame
             pn.node = node;
             return pn;
         }
-        private Node Insert(Node p)
+        private static Node Insert(Node p)
         {
             Node pn = new Node();
             pn.next = p.next;
             p.next = pn;
             return pn;
         }
-        private void Del(Node p)
+        private static void Del(Node p)
         {
             Node pd = p.next;
             p.next = pd.next;
         }
-        private void Del(Head h)
+        private static void Del(Head h)
         {
             Head pd = h.next;
             pd.node = null;
             h.next = pd.next;
         }
-        public void Clear()
+        public static void Reset()
         {
-            //xpivot = ypivot = 0x08000000;
+            started = false;
+            selected_builtin = selected_direction = 0;
+            x_pivot = y_pivot = 0x08000000;
+            timer = 100;
+            scale = 10;
+            Main.control.MapReset();
             Clear(cur);
             cur.next = null; nxt.next = null;
-            //theDlg.SetDlgItemText(IDC_HEADPOOL_USAGE, L"0");
-            //theDlg.SetDlgItemText(IDC_NODEPOOL_USAGE, L"0");
-            //redraw_erase();
-            //change_xpivot(); change_ypivot();
         }
-        private void Clear(Head h) {
+        private static void Clear(Head h) {
             h.next = null;
         }
-        public void AddBuiltin(int xpos, int ypos, byte b = 0xff, byte d = 0xff) {
+        public static void AddBuiltin(int xpos, int ypos, byte b = 0xff, byte d = 0xff) {
             if (b >= 10 || d >= 8) return;
             byte s = builtins[b].size, l = (byte)(builtins[b].width - 1), h = (byte)(builtins[b].height - 1);
             Point[] cur = builtins[b].points;
@@ -215,7 +215,7 @@ namespace ConwayLifeGame
                     break;
             }
         }
-        public void AddDeleteRegion(int left, int top, int right, int bottom, AddRegionState? state = null)
+        public static void AddDeleteRegion(int left, int top, int right, int bottom, AddRegionState? state = null)
         {
             if (state == null) state = add_region_state;
             Head acce = null;
@@ -247,18 +247,15 @@ namespace ConwayLifeGame
                 default: break;
             }
         }
-        //public void Draw();
-        public void GetBulitinInfo(out int width, out int height, int b = -1)
+        public static Builtin GetBulitinInfo(int b = -1)
         {
             if (b == -1) b = selected_builtin;
-            if (b < 0 || b > 10) { width = 0; height = 0; return; }
-            width = builtins[b].width;
-            height = builtins[b].height;
-            return;
+            try { return builtins[b]; }
+            catch (Exception) { return null; }
         }
-        private void InitBuiltins()
+        public static void InitBuiltins()
         {
-            builtins = new Builtin[9];
+            builtins = new Builtin[6];
 
             //{1,1,1},
             //{1,0,0},
@@ -267,10 +264,7 @@ namespace ConwayLifeGame
             Point[] builtin0 = new Point[] {
                 new Point(0, 0), new Point(0, 1), new Point(1, 0), new Point(1, 2), new Point(2, 0)
             };
-            builtins[0].points = builtin0;
-            builtins[0].size = (byte)builtin0.Length;
-            builtins[0].width = 3;
-            builtins[0].height = 3;
+            builtins[0] = new Builtin(builtin0, 3, 3);
 
             //{0,1,0,0,1},
             //{1,0,0,0,0},
@@ -280,10 +274,7 @@ namespace ConwayLifeGame
             Point[] builtin1 = new Point[] {
                 new Point(0, 1), new Point(0, 2), new Point(0, 3), new Point(1, 0), new Point(1, 3), new Point(2, 3), new Point(3, 3), new Point(4, 0), new Point(4, 2),
             };
-            builtins[1].points = builtin1;
-            builtins[1].size = (byte)builtin1.Length;
-            builtins[1].width = 5;
-            builtins[1].height = 4;
+            builtins[1] = new Builtin(builtin1, 4, 5);
 
             //
             //{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0},
@@ -305,10 +296,7 @@ namespace ConwayLifeGame
                 new Point(24, 0), new Point(24, 1), new Point(24, 5), new Point(24, 6),
                 new Point(34, 2), new Point(34, 3), new Point(35, 2), new Point(35, 3),
             };
-            builtins[2].points = builtin2;
-            builtins[2].size = (byte)builtin2.Length;
-            builtins[2].width = 36;
-            builtins[2].height = 9;
+            builtins[2] = new Builtin(builtin2, 9, 36);
 
             //
             //{0,0,0,0,0,0,1,0,0,0,0,0,0},
@@ -332,10 +320,7 @@ namespace ConwayLifeGame
                 new Point(5, 10), new Point(5, 11), new Point(6, 9), new Point(6, 12), new Point(7, 10), new Point(7, 11),
                 new Point(9, 6), new Point(10, 5), new Point(10, 7), new Point(11, 5), new Point(11, 7), new Point(12, 6),
             };
-            builtins[3].points = builtin3;
-            builtins[3].size = (byte)builtin3.Length;
-            builtins[3].width = 13;
-            builtins[3].height = 13;
+            builtins[3] = new Builtin(builtin3, 13, 13);
 
             //{1, 1, 0, 0}
             //{1, 1, 0, 0}
@@ -346,10 +331,7 @@ namespace ConwayLifeGame
                 new Point(0, 0), new Point(0, 1), new Point(1, 0), new Point(1, 1),
                 new Point(2, 2), new Point(2, 3), new Point(3, 2), new Point(3, 3),
             };
-            builtins[4].points = builtin4;
-            builtins[4].size = (byte)builtin4.Length;
-            builtins[4].width = 4;
-            builtins[4].height = 4;
+            builtins[4] = new Builtin(builtin4, 4, 4);
 
             //
             // {0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0}
@@ -373,10 +355,7 @@ namespace ConwayLifeGame
                 new Point(7, 2), new Point(7, 3), new Point(7, 4), new Point(8, 0), new Point(9, 0), new Point(10, 0), new Point(12, 2), new Point(12, 3), new Point(12, 4), new Point(8, 5), new Point(9, 5), new Point(10, 5),
                 new Point(7, 8), new Point(7, 9), new Point(7, 10), new Point(8, 7), new Point(9, 7), new Point(10, 7), new Point(12, 8), new Point(12, 9), new Point(12, 10), new Point(8, 12), new Point(9, 12), new Point(10, 12),
             };
-            builtins[5].points = builtin5;
-            builtins[5].size = (byte)builtin5.Length;
-            builtins[5].width = 13;
-            builtins[5].height = 13;
+            builtins[5] = new Builtin(builtin5, 13, 13);
         }
     }
 }
