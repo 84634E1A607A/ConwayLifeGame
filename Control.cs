@@ -32,7 +32,11 @@ namespace ConwayLifeGame
                 Rectangle r = new Rectangle(scale * point.x, scale * point.y, scale, scale);
                 graphics.FillRectangle(brush, r);
             }
-            graphics.FillRectangle(new SolidBrush(Color.Red), new Rectangle(0, 0, scale, scale));
+            SolidBrush rbrush = new SolidBrush(Color.Red);
+            graphics.FillRectangle(rbrush, new Rectangle(0, 0, scale, scale));
+            rbrush.Dispose();
+            brush.Dispose();
+            graphics.Dispose();
         }
 
         private void StartStop_Click(object sender, EventArgs e)
