@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 
 namespace ConwayLifeGame
@@ -27,7 +23,7 @@ namespace ConwayLifeGame
             int x_start = (size.Width - builtin_info.width * scale) / 2;
             int y_start = (size.Height - builtin_info.height * scale) / 2;
             graphics.TranslateTransform(x_start, y_start);
-            foreach(Map.Point point in builtin_info.points)
+            foreach (Map.Point point in builtin_info.points)
             {
                 Rectangle r = new Rectangle(scale * point.x, scale * point.y, scale, scale);
                 graphics.FillRectangle(brush, r);

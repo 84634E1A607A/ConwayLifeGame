@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ConwayLifeGame
 {
@@ -43,7 +41,8 @@ namespace ConwayLifeGame
         private static Head cur = new Head();
         private static Head nxt = new Head();
         private static Builtin[] builtins;
-        public enum AddRegionState {
+        public enum AddRegionState
+        {
             insert,
             delete,
             random
@@ -56,11 +55,13 @@ namespace ConwayLifeGame
             Head px = nxt;
             if (acce.x <= xpos) px = acce;
             while (px.next != null && px.next.x <= xpos) px = px.next;
-            if (px.x == xpos && px.node != null) {
+            if (px.x == xpos && px.node != null)
+            {
                 Node py = px.node;
                 while (py.next != null && py.next.y <= ypos) py = py.next;
                 if (py.y == ypos) py.count++;               //If the Node already exists: add 1 to count
-                else {                                      //If the Node doesn't exist: insert a Node
+                else
+                {                                      //If the Node doesn't exist: insert a Node
                     Node pn = Insert(py);
                     pn.y = ypos;
                     pn.count = 1;
@@ -181,14 +182,17 @@ namespace ConwayLifeGame
             Clear(cur);
             cur.next = null; nxt.next = null;
         }
-        private static void Clear(Head h) {
+        private static void Clear(Head h)
+        {
             h.next = null;
         }
-        public static void AddBuiltin(int xpos, int ypos, byte b = 0xff, byte d = 0xff) {
+        public static void AddBuiltin(int xpos, int ypos, byte b = 0xff, byte d = 0xff)
+        {
             if (b >= 10 || d >= 8) return;
             byte s = builtins[b].size, l = (byte)(builtins[b].width - 1), h = (byte)(builtins[b].height - 1);
             Point[] cur = builtins[b].points;
-            switch (d) {
+            switch (d)
+            {
                 case 0:
                     for (byte i = 0; i < s; i++) Change(xpos + cur[i].x, ypos + cur[i].y, 1);
                     break;

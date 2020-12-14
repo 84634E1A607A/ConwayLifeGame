@@ -12,12 +12,11 @@ namespace ConwayLifeGame
 {
     public partial class Main : Form
     {
-        public static Control control;
         public Main()
         {
             InitializeComponent();
             Map.InitBuiltins();
-            control = new Control();
+            Program.control = new Control();
         }
 
         private void HelpAbout_Click(object sender, EventArgs e)
@@ -39,7 +38,7 @@ namespace ConwayLifeGame
 
         private void OptionsShowWindow_Click(object sender, EventArgs e)
         {
-            control.Show();
+            Program.control.Show();
         }
 
         private void FileExit_Click(object sender, EventArgs e)
