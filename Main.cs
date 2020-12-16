@@ -45,5 +45,37 @@ namespace ConwayLifeGame
         {
             Application.Exit();
         }
+
+        private Graphics graphics;
+        private Pen pen;
+
+        private void MainPanel_Paint(object sender, PaintEventArgs e)
+        {
+            if (graphics == null) graphics = MainPanel.CreateGraphics();
+
+            Size size = MainPanel.Size;
+            int mid_x = size.Width / 2, mid_y = size.Height / 2;
+
+            if (pen == null) pen = new Pen(Color.Black, 1);
+
+            BufferedGraphicsContext context = BufferedGraphicsManager.Current;
+            BufferedGraphics bufferedGraphics = context.Allocate(graphics, e.ClipRectangle);
+            Graphics buffered = bufferedGraphics.Graphics;
+
+            buffered.Clear(BackColor);
+
+            /*  lines  */
+            for (int i = mid_x % Map.scale; i <= size.Width; i += Map.scale)
+                buffered.DrawLine(pen, new Point(i, 0), new Point(i, size.Height));
+            for (int i = mid_y % Map.scale; i <= size.Height; i += Map.scale)
+                buffered.DrawLine(pen, new Point(0, i), new Point(size.Width, i));
+
+            /*  blocks  */
+            Map.Draw(buffered, size);
+
+            bufferedGraphics.Render();
+            bufferedGraphics.Dispose();
+
+        }
     }
 }

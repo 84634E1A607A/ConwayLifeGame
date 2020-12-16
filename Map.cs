@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 
 namespace ConwayLifeGame
 {
@@ -48,8 +49,9 @@ namespace ConwayLifeGame
             random
         };
         public static AddRegionState add_region_state;
-        public static int selected_builtin, selected_direction, x_pivot, y_pivot, timer, scale;
+        public static int selected_builtin, selected_direction, x_pivot, y_pivot, timer, scale = 10;
         public static bool started;
+
         private static Head Add(int xpos, int ypos, Head acce)
         {
             Head px = nxt;
@@ -78,6 +80,7 @@ namespace ConwayLifeGame
             }
             return px;
         }
+
         public static Head Change(int xpos, int ypos, int type = 0, Head acce = null)     //type: {0: 1.0, 0.1; 1: 0,1.1; 2: 0,1.0}
         {
             Head px = cur;
@@ -105,6 +108,7 @@ namespace ConwayLifeGame
             }
             return px;
         }
+
         public static void Calc()
         {
             Head px = cur.next, pacce = null, ptmp = null;
@@ -141,9 +145,37 @@ namespace ConwayLifeGame
             }
             Clear(nxt);
         }
-        //public void DrawBuiltin();
+
         //public void Load(string f);
+
         //public void Dump(string f);
+
+        public static void Draw(Graphics graphics, Size size)
+        {
+            int mid_x = size.Width / 2, mid_y = size.Height / 2;
+            graphics.TranslateTransform(mid_x, mid_y);
+            int left = (-mid_x) / scale + x_pivot - 1, right = mid_x / scale + x_pivot + 1;
+            int top = (-mid_y) / scale + y_pivot - 1, bottom = mid_y / scale + y_pivot + 1;
+            Head pl = cur;
+            while (pl.next != null && pl.next.x < left) pl = pl.next;
+            Head px = pl;
+            SolidBrush brush = new SolidBrush(Color.Black);
+            while (px.next != null && px.next.x <= right)
+            {
+                Node py = px.next.node;
+                while (py.next != null && py.next.y < top) py = py.next;
+                while (py.next != null && py.next.y <= bottom)
+                {
+                    Rectangle fill_rect = new Rectangle( (px.next.x - x_pivot) * scale + 1, (py.next.y - y_pivot) * scale + 1, scale - 1, scale - 1);
+                    graphics.FillRectangle(brush, fill_rect);
+                    py = py.next;
+                }
+                px = px.next;
+            }
+            graphics.ResetTransform();
+            brush.Dispose();
+        }
+
         private static Head Insert(Head p)
         {
             Head pn = new Head();
@@ -153,6 +185,7 @@ namespace ConwayLifeGame
             pn.node = node;
             return pn;
         }
+
         private static Node Insert(Node p)
         {
             Node pn = new Node();
@@ -160,17 +193,20 @@ namespace ConwayLifeGame
             p.next = pn;
             return pn;
         }
+
         private static void Del(Node p)
         {
             Node pd = p.next;
             p.next = pd.next;
         }
+
         private static void Del(Head h)
         {
             Head pd = h.next;
             pd.node = null;
             h.next = pd.next;
         }
+
         public static void Reset()
         {
             started = false;
@@ -178,14 +214,16 @@ namespace ConwayLifeGame
             x_pivot = y_pivot = 0x08000000;
             timer = 100;
             scale = 10;
-            Main.control.MapReset();
+            Program.control.MapReset();
             Clear(cur);
             cur.next = null; nxt.next = null;
         }
+
         private static void Clear(Head h)
         {
             h.next = null;
         }
+
         public static void AddBuiltin(int xpos, int ypos, byte b = 0xff, byte d = 0xff)
         {
             if (b >= 10 || d >= 8) return;
@@ -219,6 +257,7 @@ namespace ConwayLifeGame
                     break;
             }
         }
+
         public static void AddDeleteRegion(int left, int top, int right, int bottom, AddRegionState? state = null)
         {
             if (state == null) state = add_region_state;
@@ -251,12 +290,14 @@ namespace ConwayLifeGame
                 default: break;
             }
         }
+
         public static Builtin GetBulitinInfo(int b = -1)
         {
             if (b == -1) b = selected_builtin;
             try { return builtins[b]; }
             catch (Exception) { return null; }
         }
+
         public static void InitBuiltins()
         {
             builtins = new Builtin[6];
@@ -361,5 +402,6 @@ namespace ConwayLifeGame
             };
             builtins[5] = new Builtin(builtin5, 13, 13);
         }
+
     }
 }
