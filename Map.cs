@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Threading;
 
 namespace ConwayLifeGame
 {
@@ -20,13 +21,6 @@ namespace ConwayLifeGame
             public Head next;
             public Head() { x = 0; node = new Node(); next = null; }
         };
-        public class Point
-        {
-            public int x;
-            public int y;
-            public Point() { x = y = 0; }
-            public Point(int x, int y) { this.x = x; this.y = y; }
-        }
         public class Builtin
         {
             public Point[] points;
@@ -44,18 +38,21 @@ namespace ConwayLifeGame
         private static Builtin[] builtins;
         public enum AddRegionState
         {
+            normal,
             insert,
             delete,
             random
         };
-        public static AddRegionState add_region_state;
-        public static int selected_builtin, selected_direction, x_pivot, y_pivot, timer, scale = 10;
+        public struct AddRegionInfo { public AddRegionState state; public bool count; public Point point; };
+        public static AddRegionInfo add_region_info;
+        public static int selected_builtin, selected_direction, x_pivot = 0x08000000, y_pivot = 0x08000000, timer, scale = 10;
         public static bool started;
-
+        private static Thread calc_thread = new Thread(new ThreadStart(CalcCycle));
+        
         private static Head Add(int xpos, int ypos, Head acce)
         {
             Head px = nxt;
-            if (acce.x <= xpos) px = acce;
+            if (acce != null && acce.x <= xpos) px = acce;
             while (px.next != null && px.next.x <= xpos) px = px.next;
             if (px.x == xpos && px.node != null)
             {
@@ -109,6 +106,15 @@ namespace ConwayLifeGame
             return px;
         }
 
+        public static void ChangeNxt(int xpos, int ypos)     //type: {0: 1.0, 0.1; 1: 0,1.1; 2: 0,1.0}
+        {
+            Head px = nxt;
+            while (px.x < xpos) px = px.next;
+            Node py = px.node.next;
+            while (py.y < ypos) py = py.next;
+            py.state = true;
+        }
+
         public static void Calc()
         {
             Head px = cur.next, pacce = null, ptmp = null;
@@ -131,7 +137,7 @@ namespace ConwayLifeGame
                     ptmp = Add(x + 1, y - 1, ptmp);
                     Add(x + 1, y, ptmp);
                     Add(x + 1, y + 1, ptmp);
-                    Change(x, y, 1);
+                    ChangeNxt(x, y);
                 }
                 px = px.next;
             }
@@ -140,10 +146,15 @@ namespace ConwayLifeGame
             while (px != null)
             {
                 Node py = px.node.next;
-                for (; py != null; py = py.next) if ((py.count == 3) || py.state && py.count == 4) Change(px.x, py.y);
+                for (; py != null; py = py.next) if ((py.count == 3) || (py.state && py.count == 4)) Change(px.x, py.y);
                 px = px.next;
             }
             Clear(nxt);
+        }
+
+        private static void CalcCycle()
+        {
+            
         }
 
         //public void Load(string f);
@@ -224,45 +235,44 @@ namespace ConwayLifeGame
             h.next = null;
         }
 
-        public static void AddBuiltin(int xpos, int ypos, byte b = 0xff, byte d = 0xff)
+        public static void AddBuiltin(int xpos, int ypos)
         {
-            if (b >= 10 || d >= 8) return;
-            byte s = builtins[b].size, l = (byte)(builtins[b].width - 1), h = (byte)(builtins[b].height - 1);
-            Point[] cur = builtins[b].points;
-            switch (d)
+            byte s = builtins[selected_builtin].size, l = (byte)(builtins[selected_builtin].width - 1), h = (byte)(builtins[selected_builtin].height - 1);
+            Point[] cur = builtins[selected_builtin].points;
+            switch (selected_direction)
             {
                 case 0:
-                    for (byte i = 0; i < s; i++) Change(xpos + cur[i].x, ypos + cur[i].y, 1);
+                    for (byte i = 0; i < s; i++) Change(xpos + cur[i].X, ypos + cur[i].Y, 1);
                     break;
                 case 1:
-                    for (byte i = 0; i < s; i++) Change(xpos + cur[i].x, ypos + h - cur[i].y, 1);
+                    for (byte i = 0; i < s; i++) Change(xpos + cur[i].X, ypos + h - cur[i].Y, 1);
                     break;
                 case 2:
-                    for (byte i = 0; i < s; i++) Change(xpos + l - cur[i].x, ypos + cur[i].y, 1);
+                    for (byte i = 0; i < s; i++) Change(xpos + l - cur[i].X, ypos + cur[i].Y, 1);
                     break;
                 case 3:
-                    for (byte i = 0; i < s; i++) Change(xpos + l - cur[i].x, ypos + h - cur[i].y, 1);
+                    for (byte i = 0; i < s; i++) Change(xpos + l - cur[i].X, ypos + h - cur[i].Y, 1);
                     break;
                 case 4:
-                    for (byte i = 0; i < s; i++) Change(xpos + cur[i].y, ypos + cur[i].x, 1);
+                    for (byte i = 0; i < s; i++) Change(xpos + cur[i].Y, ypos + cur[i].X, 1);
                     break;
                 case 5:
-                    for (byte i = 0; i < s; i++) Change(xpos + cur[i].y, ypos + l - cur[i].x, 1);
+                    for (byte i = 0; i < s; i++) Change(xpos + cur[i].Y, ypos + l - cur[i].X, 1);
                     break;
                 case 6:
-                    for (byte i = 0; i < s; i++) Change(xpos + h - cur[i].y, ypos + cur[i].x, 1);
+                    for (byte i = 0; i < s; i++) Change(xpos + h - cur[i].Y, ypos + cur[i].X, 1);
                     break;
                 case 7:
-                    for (byte i = 0; i < s; i++) Change(xpos + h - cur[i].y, ypos + l - cur[i].x, 1);
+                    for (byte i = 0; i < s; i++) Change(xpos + h - cur[i].Y, ypos + l - cur[i].X, 1);
                     break;
             }
         }
 
-        public static void AddDeleteRegion(int left, int top, int right, int bottom, AddRegionState? state = null)
+        public static void AddDeleteRegion(Point p1, Point p2)
         {
-            if (state == null) state = add_region_state;
+            int left = p1.X, top = p1.Y, right = p2.X, bottom = p2.Y;
             Head acce = null;
-            switch (state)
+            switch (add_region_info.state)
             {
                 case AddRegionState.random:
                     {
@@ -298,7 +308,13 @@ namespace ConwayLifeGame
             catch (Exception) { return null; }
         }
 
-        public static void InitBuiltins()
+        public static void Initialize()
+        {
+            InitBuiltins();
+            calc_thread.Start();
+        }
+
+        private static void InitBuiltins()
         {
             builtins = new Builtin[6];
 
@@ -402,6 +418,5 @@ namespace ConwayLifeGame
             };
             builtins[5] = new Builtin(builtin5, 13, 13);
         }
-
     }
 }

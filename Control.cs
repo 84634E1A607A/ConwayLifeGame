@@ -23,9 +23,9 @@ namespace ConwayLifeGame
             int x_start = (size.Width - builtin_info.width * scale) / 2;
             int y_start = (size.Height - builtin_info.height * scale) / 2;
             graphics.TranslateTransform(x_start, y_start);
-            foreach (Map.Point point in builtin_info.points)
+            foreach (Point point in builtin_info.points)
             {
-                Rectangle r = new Rectangle(scale * point.x, scale * point.y, scale, scale);
+                Rectangle r = new Rectangle(scale * point.X, scale * point.Y, scale, scale);
                 graphics.FillRectangle(brush, r);
             }
             SolidBrush rbrush = new SolidBrush(Color.Red);
@@ -38,6 +38,8 @@ namespace ConwayLifeGame
         private void StartStop_Click(object sender, EventArgs e)
         {
             Map.started = !Map.started;
+            if (Map.started) Program.main.ClacTimer.Start();
+            else Program.main.ClacTimer.Stop();
         }
 
         private void Control_FormClosing(object sender, FormClosingEventArgs e)
@@ -49,6 +51,7 @@ namespace ConwayLifeGame
         private void Reset_Click(object sender, EventArgs e)
         {
             Map.Reset();
+            Program.main.ClacTimer.Stop();
         }
 
         public void MapReset()
@@ -94,6 +97,7 @@ namespace ConwayLifeGame
         private void Timer_ValueChanged(object sender, EventArgs e)
         {
             Map.timer = (int)Timer.Value;
+            Program.main.ClacTimer.Interval = Map.timer;
         }
     }
 }

@@ -29,6 +29,7 @@ namespace ConwayLifeGame
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.MainFormMenu = new System.Windows.Forms.MenuStrip();
             this.MainMenuFile = new System.Windows.Forms.ToolStripMenuItem();
             this.FileNewWindow = new System.Windows.Forms.ToolStripMenuItem();
@@ -44,6 +45,7 @@ namespace ConwayLifeGame
             this.HelpAbout = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpHelp = new System.Windows.Forms.ToolStripMenuItem();
             this.MainPanel = new System.Windows.Forms.Panel();
+            this.ClacTimer = new System.Windows.Forms.Timer(this.components);
             this.MainFormMenu.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -179,6 +181,11 @@ namespace ConwayLifeGame
             this.MainPanel.Size = new System.Drawing.Size(711, 381);
             this.MainPanel.TabIndex = 1;
             this.MainPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.MainPanel_Paint);
+            this.MainPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainPanel_MouseDown);
+            // 
+            // ClacTimer
+            // 
+            this.ClacTimer.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // Main
             // 
@@ -215,6 +222,7 @@ namespace ConwayLifeGame
         private System.Windows.Forms.ToolStripMenuItem HelpAbout;
         private System.Windows.Forms.ToolStripMenuItem HelpHelp;
         public System.Windows.Forms.Panel MainPanel;
+        public System.Windows.Forms.Timer ClacTimer;
     }
 }
 

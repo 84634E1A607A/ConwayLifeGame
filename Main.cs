@@ -15,7 +15,7 @@ namespace ConwayLifeGame
         public Main()
         {
             InitializeComponent();
-            Map.InitBuiltins();
+            Map.Initialize();
             Program.control = new Control();
         }
 
@@ -76,6 +76,63 @@ namespace ConwayLifeGame
             bufferedGraphics.Render();
             bufferedGraphics.Dispose();
 
+        }
+
+        private void MainPanel_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left) MainPanel_LButtonDown(e);
+            else if (e.Button == MouseButtons.Right) MainPanel_RButtonDown(e);
+
+        }
+
+        private void MainPanel_LButtonDown(MouseEventArgs e)
+        {
+            if (Map.add_region_info.state != Map.AddRegionState.normal) return;
+            int mid_x = MainPanel.Width / 2, mid_y = MainPanel.Height / 2;
+            int xc = (e.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot;
+            int yc = (e.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot;
+            Map.Change(xc, yc);
+            if (Map.add_region_info.state != Map.AddRegionState.normal)
+            {
+                if (!Map.add_region_info.count)
+                {
+                    Map.add_region_info.point = new Point();
+                    Map.add_region_info.point.X = xc;
+                    Map.add_region_info.point.Y = yc;
+                    Map.add_region_info.count = true;
+                }
+                else
+                {
+                    Point p1 = new Point(), p2 = new Point();
+                    p1.X = Math.Min(Map.add_region_info.point.X, xc);
+                    p1.Y = Math.Min(Map.add_region_info.point.Y, yc);
+                    p2.X = Math.Max(Map.add_region_info.point.X, xc);
+                    p2.Y = Math.Max(Map.add_region_info.point.Y, yc);
+                    Map.AddDeleteRegion(p1, p2);
+                    Map.add_region_info.count = false;
+                    Map.add_region_info.state = Map.AddRegionState.normal;
+                }
+            }
+            else
+            {
+                Map.add_region_info.point = new Point(xc, yc);
+            }
+            Program.main.MainPanel.Refresh();
+        }
+
+        private void MainPanel_RButtonDown(MouseEventArgs e)
+        {
+            int mid_x = MainPanel.Width / 2, mid_y = MainPanel.Height / 2;
+            int xc = (e.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot;
+            int yc = (e.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot;
+            Map.AddBuiltin(xc, yc);
+            MainPanel.Refresh();
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            Map.Calc();
+            Program.main.MainPanel.Refresh();
         }
     }
 }
