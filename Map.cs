@@ -225,9 +225,8 @@ namespace ConwayLifeGame
             x_pivot = y_pivot = 0x08000000;
             timer = 100;
             scale = 10;
-            Program.control.MapReset();
             Clear(cur);
-            cur.next = null; nxt.next = null;
+            Program.control.MapReset();
         }
 
         private static void Clear(Head h)

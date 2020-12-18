@@ -62,13 +62,13 @@ namespace ConwayLifeGame
             DirectionSelect.Value = Map.selected_direction;
             Timer.Value = Map.timer;
             MapScale.Value = Map.scale;
-            Program.main.MainPanel.Refresh();
+            Program.main.MainPanel.Invalidate();
         }
 
         private void BuiltinSelect_ValueChanged(object sender, EventArgs e)
         {
             Map.selected_builtin = (byte)BuiltinSelect.Value;
-            PreviewPanel.Refresh();
+            PreviewPanel.Invalidate();
         }
 
         private void DirectionSelect_ValueChanged(object sender, EventArgs e)
@@ -79,19 +79,19 @@ namespace ConwayLifeGame
         private void XPivot_ValueChanged(object sender, EventArgs e)
         {
             Map.x_pivot = (int)XPivot.Value;
-            Program.main.MainPanel.Refresh();
+            Program.main.MainPanel.Invalidate();
         }
 
         private void YPivot_ValueChanged(object sender, EventArgs e)
         {
             Map.y_pivot = (int)YPivot.Value;
-            Program.main.MainPanel.Refresh();
+            Program.main.MainPanel.Invalidate();
         }
 
         private void MapScale_ValueChanged(object sender, EventArgs e)
         {
             Map.scale = (int)MapScale.Value;
-            Program.main.MainPanel.Refresh();
+            Program.main.MainPanel.Invalidate();
         }
 
         private void Timer_ValueChanged(object sender, EventArgs e)

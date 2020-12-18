@@ -48,6 +48,8 @@ namespace ConwayLifeGame
 
         private Graphics graphics;
         private Pen pen;
+        private Bitmap bitmap;
+        private int bitmapScale;
 
         private void MainPanel_Paint(object sender, PaintEventArgs e)
         {
@@ -56,7 +58,7 @@ namespace ConwayLifeGame
             Size size = MainPanel.Size;
             int mid_x = size.Width / 2, mid_y = size.Height / 2;
 
-            if (pen == null) pen = new Pen(Color.Black, 1);
+            if (pen == null) pen = new Pen(Color.FromArgb(0xFF, 0x88, 0x88, 0x88), 1);
 
             BufferedGraphicsContext context = BufferedGraphicsManager.Current;
             BufferedGraphics bufferedGraphics = context.Allocate(graphics, e.ClipRectangle);
@@ -64,18 +66,27 @@ namespace ConwayLifeGame
 
             buffered.Clear(BackColor);
 
-            /*  lines  */
-            for (int i = mid_x % Map.scale; i <= size.Width; i += Map.scale)
-                buffered.DrawLine(pen, new Point(i, 0), new Point(i, size.Height));
-            for (int i = mid_y % Map.scale; i <= size.Height; i += Map.scale)
-                buffered.DrawLine(pen, new Point(0, i), new Point(size.Width, i));
+            if (bitmap == null || bitmap.Size != size || bitmapScale != Map.scale)
+            {
+                if (bitmap != null) bitmap.Dispose();
+                bitmap = new Bitmap(size.Width, size.Height);
+                Graphics bitmapGraphics = Graphics.FromImage(bitmap);
+                /*  lines in bitmap */
+                for (int i = mid_x % Map.scale; i <= size.Width; i += Map.scale)
+                    bitmapGraphics.DrawLine(pen, new Point(i, 0), new Point(i, size.Height));
+                for (int i = mid_y % Map.scale; i <= size.Height; i += Map.scale)
+                    bitmapGraphics.DrawLine(pen, new Point(0, i), new Point(size.Width, i));
+                bitmapGraphics.Dispose();
+                bitmapScale = Map.scale;
+            }
 
+            /*  lines   */
+            buffered.DrawImage(bitmap, 0, 0);
             /*  blocks  */
             Map.Draw(buffered, size);
 
             bufferedGraphics.Render();
             bufferedGraphics.Dispose();
-
         }
 
         private void MainPanel_MouseDown(object sender, MouseEventArgs e)
@@ -133,6 +144,16 @@ namespace ConwayLifeGame
         {
             Map.Calc();
             Program.main.MainPanel.Refresh();
+        }
+
+        private void Main_Load(object sender, EventArgs e)
+        {
+            SetStyle(ControlStyles.ResizeRedraw | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
+        }
+
+        private void Main_SizeChanged(object sender, EventArgs e)
+        {
+            MainPanel.Refresh();
         }
     }
 }

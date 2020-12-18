@@ -194,10 +194,11 @@ namespace ConwayLifeGame
             this.ClientSize = new System.Drawing.Size(711, 421);
             this.Controls.Add(this.MainPanel);
             this.Controls.Add(this.MainFormMenu);
-            this.DoubleBuffered = true;
             this.MainMenuStrip = this.MainFormMenu;
             this.Name = "Main";
             this.Text = "Conway\'s Life Game";
+            this.Load += new System.EventHandler(this.Main_Load);
+            this.SizeChanged += new System.EventHandler(this.Main_SizeChanged);
             this.MainFormMenu.ResumeLayout(false);
             this.MainFormMenu.PerformLayout();
             this.ResumeLayout(false);

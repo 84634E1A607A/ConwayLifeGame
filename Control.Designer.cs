@@ -168,7 +168,7 @@ namespace ConwayLifeGame
             this.StartStop.Name = "StartStop";
             this.StartStop.Size = new System.Drawing.Size(75, 26);
             this.StartStop.TabIndex = 9;
-            this.StartStop.Text = "Start / Stop";
+            this.StartStop.Text = "St / St";
             this.StartStop.UseVisualStyleBackColor = true;
             this.StartStop.Click += new System.EventHandler(this.StartStop_Click);
             // 
