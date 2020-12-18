@@ -46,6 +46,7 @@ namespace ConwayLifeGame
             this.HelpHelp = new System.Windows.Forms.ToolStripMenuItem();
             this.MainPanel = new System.Windows.Forms.Panel();
             this.ClacTimer = new System.Windows.Forms.Timer(this.components);
+            this.PaintTimer = new System.Windows.Forms.Timer(this.components);
             this.MainFormMenu.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -187,6 +188,11 @@ namespace ConwayLifeGame
             // 
             this.ClacTimer.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // PaintTimer
+            // 
+            this.PaintTimer.Interval = 50;
+            this.PaintTimer.Tick += new System.EventHandler(this.PaintTimer_Tick);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
@@ -224,6 +230,7 @@ namespace ConwayLifeGame
         private System.Windows.Forms.ToolStripMenuItem HelpHelp;
         public System.Windows.Forms.Panel MainPanel;
         public System.Windows.Forms.Timer ClacTimer;
+        private System.Windows.Forms.Timer PaintTimer;
     }
 }
 

@@ -62,7 +62,7 @@ namespace ConwayLifeGame
             DirectionSelect.Value = Map.selected_direction;
             Timer.Value = Map.timer;
             MapScale.Value = Map.scale;
-            Program.main.MainPanel.Invalidate();
+            //Program.main.MainPanel.Invalidate();
         }
 
         private void BuiltinSelect_ValueChanged(object sender, EventArgs e)

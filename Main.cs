@@ -128,7 +128,7 @@ namespace ConwayLifeGame
             {
                 Map.add_region_info.point = new Point(xc, yc);
             }
-            Program.main.MainPanel.Refresh();
+            //Program.main.MainPanel.Refresh();
         }
 
         private void MainPanel_RButtonDown(MouseEventArgs e)
@@ -137,23 +137,29 @@ namespace ConwayLifeGame
             int xc = (e.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot;
             int yc = (e.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot;
             Map.AddBuiltin(xc, yc);
-            MainPanel.Refresh();
+            //MainPanel.Refresh();
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
             Map.Calc();
-            Program.main.MainPanel.Refresh();
+            //Program.main.MainPanel.Refresh();
         }
 
         private void Main_Load(object sender, EventArgs e)
         {
             SetStyle(ControlStyles.ResizeRedraw | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
+            PaintTimer.Start();
         }
 
         private void Main_SizeChanged(object sender, EventArgs e)
         {
-            MainPanel.Refresh();
+            //MainPanel.Invalidate();
+        }
+
+        private void PaintTimer_Tick(object sender, EventArgs e)
+        {
+            MainPanel.Invalidate();
         }
     }
 }
