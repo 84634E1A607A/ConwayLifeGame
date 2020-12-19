@@ -73,9 +73,9 @@ namespace ConwayLifeGame
                 Graphics bitmapGraphics = Graphics.FromImage(bitmap);
                 /*  lines in bitmap */
                 for (int i = mid_x % Map.scale; i <= size.Width; i += Map.scale)
-                    bitmapGraphics.DrawLine(pen, new Point(i, 0), new Point(i, size.Height));
+                    bitmapGraphics.DrawLine(pen, i, 0, i, size.Height);
                 for (int i = mid_y % Map.scale; i <= size.Height; i += Map.scale)
-                    bitmapGraphics.DrawLine(pen, new Point(0, i), new Point(size.Width, i));
+                    bitmapGraphics.DrawLine(pen, 0, i, size.Width, i);
                 bitmapGraphics.Dispose();
                 bitmapScale = Map.scale;
             }
@@ -148,7 +148,7 @@ namespace ConwayLifeGame
 
         private void Main_Load(object sender, EventArgs e)
         {
-            SetStyle(ControlStyles.ResizeRedraw | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
+            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
             PaintTimer.Start();
         }
 

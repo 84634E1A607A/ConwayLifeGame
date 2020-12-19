@@ -177,8 +177,7 @@ namespace ConwayLifeGame
                 while (py.next != null && py.next.y < top) py = py.next;
                 while (py.next != null && py.next.y <= bottom)
                 {
-                    Rectangle fill_rect = new Rectangle( (px.next.x - x_pivot) * scale + 1, (py.next.y - y_pivot) * scale + 1, scale - 1, scale - 1);
-                    graphics.FillRectangle(brush, fill_rect);
+                    graphics.FillRectangle(brush, (px.next.x - x_pivot) * scale + 1, (py.next.y - y_pivot) * scale + 1, scale - 1, scale - 1);
                     py = py.next;
                 }
                 px = px.next;
