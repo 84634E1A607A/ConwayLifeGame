@@ -5,7 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace ConwayLifeGame
@@ -22,7 +22,8 @@ namespace ConwayLifeGame
             bkgBitmap = new Bitmap(MainPictureBox.Width, MainPictureBox.Height);
             mainPicBitmap = new Bitmap(MainPictureBox.Width, MainPictureBox.Height);
             graphics = Graphics.FromImage(mainPicBitmap);
-            MainPictureBox_Paint();
+            paintThread = new Thread(new ThreadStart(PaintThread));
+            paintThread.Start();
         }
 
         private void HelpAbout_Click(object sender, EventArgs e)
@@ -57,8 +58,9 @@ namespace ConwayLifeGame
         private Pen bkgPen;
         private Bitmap bkgBitmap;
         private int bitmapScale;
+        private Thread paintThread;
 
-        public void MainPictureBox_Paint()
+        private void MainPictureBox_Paint()
         {
             Size size = MainPictureBox.Size;
             int mid_x = size.Width / 2, mid_y = size.Height / 2;
@@ -97,11 +99,23 @@ namespace ConwayLifeGame
             MainPictureBox.Image = mainPicBitmap;
         }
 
+        private void PaintThread()
+        {
+            try
+            {
+                while (true)
+                {
+                    Thread.Sleep(20);
+                    MainPictureBox_Paint();
+                }
+            }
+            catch (ArgumentException) { return; }
+        }
+
         private void MainPictureBox_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left) MainPictureBox_LButtonDown(e);
             else if (e.Button == MouseButtons.Right) MainPictureBox_RButtonDown(e);
-            MainPictureBox_Paint();
         }
 
         private void MainPictureBox_LButtonDown(MouseEventArgs e)
@@ -183,7 +197,6 @@ namespace ConwayLifeGame
         private void ClacTimer_Tick(object sender, EventArgs e)
         {
             Map.Calc();
-            MainPictureBox_Paint();
         }
 
         private void Main_KeyDown(object sender, KeyEventArgs e)
@@ -220,25 +233,21 @@ namespace ConwayLifeGame
                 case Keys.Left:
                     {
                         Program.control.XPivot.Value -= move_length / Map.scale;
-                        Program.main.MainPictureBox_Paint();
                         break;
                     }
                 case Keys.Right:
                     {
                         Program.control.XPivot.Value += move_length / Map.scale;
-                        Program.main.MainPictureBox_Paint();
                         break;
                     }
                 case Keys.Up:
                     {
                         Program.control.YPivot.Value -= move_length / Map.scale;
-                        Program.main.MainPictureBox_Paint();
                         break;
                     }
                 case Keys.Down:
                     {
                         Program.control.YPivot.Value += move_length / Map.scale;
-                        Program.main.MainPictureBox_Paint();
                         break;
                     }
                 case Keys.Oemplus:
@@ -339,8 +348,15 @@ namespace ConwayLifeGame
                             break;
                         }
                 }
-                Program.main.MainPictureBox_Paint();
             }
+        }
+
+        private void Main_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            graphics.Dispose();
+            bkgPen.Dispose();
+            bkgBitmap.Dispose();
+            mainPicBitmap.Dispose();
         }
     }
 }

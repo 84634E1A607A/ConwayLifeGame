@@ -200,6 +200,7 @@ namespace ConwayLifeGame
             this.MainMenuStrip = this.MainFormMenu;
             this.Name = "Main";
             this.Text = "Conway\'s Life Game";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Main_FormClosed);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Main_KeyDown);
             this.MainFormMenu.ResumeLayout(false);
             this.MainFormMenu.PerformLayout();
