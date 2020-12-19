@@ -14,6 +14,7 @@ namespace ConwayLifeGame
             public Node next;
             public Node() { y = 0; state = false; count = 0; next = null; }
         };
+        
         public class Head
         {
             public int x;
@@ -21,6 +22,7 @@ namespace ConwayLifeGame
             public Head next;
             public Head() { x = 0; node = new Node(); next = null; }
         };
+        
         public class Builtin
         {
             public Point[] points;
@@ -33,9 +35,11 @@ namespace ConwayLifeGame
                 this.points = points; this.size = (byte)points.Length; this.height = height; this.width = width;
             }
         }
+        
         private static Head cur = new Head();
         private static Head nxt = new Head();
         private static Builtin[] builtins;
+        
         public enum AddRegionState
         {
             normal,
@@ -43,9 +47,37 @@ namespace ConwayLifeGame
             delete,
             random
         };
-        public struct AddRegionInfo { public AddRegionState state; public bool count; public Point point; };
+        public struct AddRegionInfo
+        {
+            public AddRegionState state;
+            public bool count; 
+            public Point point;             // Rleative to Map
+        };
         public static AddRegionInfo add_region_info;
-        public static int selected_builtin, selected_direction, x_pivot = 0x08000000, y_pivot = 0x08000000, timer, scale = 10;
+
+        public enum KeyboardInputState
+        {
+            normal,
+            bulitin,
+            direction
+        }
+        public static KeyboardInputState keyboard_input_state;
+
+        public enum MouseState
+        {
+            click,
+            pen,
+            eraser,
+            drag
+        }
+        public struct MouseInfo
+        {
+            public MouseState state;
+            public Point previous;          // Rleative to Map
+        }
+        public static MouseInfo mouse_info;
+
+        public static int selected_builtin, selected_direction, x_pivot = 0x08000000, y_pivot = 0x08000000, timer = 100, scale = 10;
         public static bool started;
         private static Thread calc_thread = new Thread(new ThreadStart(CalcCycle));
         
@@ -78,8 +110,14 @@ namespace ConwayLifeGame
             return px;
         }
 
-        public static Head Change(int xpos, int ypos, int type = 0, Head acce = null)     //type: {0: 1.0, 0.1; 1: 0,1.1; 2: 0,1.0}
+        /*type: {
+            0: 1->0, 0->1;
+            1: 0,1->1;
+            2: 0,1->0}
+        */
+        public static Head Change(int xpos, int ypos, int type = 0, Head acce = null)
         {
+            if (xpos <= 0 || ypos <= 0) return null;
             Head px = cur;
             if (acce != null && acce.x <= xpos) px = acce;
             while (px.next != null && px.next.x <= xpos) px = px.next;
@@ -106,7 +144,7 @@ namespace ConwayLifeGame
             return px;
         }
 
-        public static void ChangeNxt(int xpos, int ypos)     //type: {0: 1.0, 0.1; 1: 0,1.1; 2: 0,1.0}
+        public static void ChangeNxt(int xpos, int ypos) 
         {
             Head px = nxt;
             while (px.x < xpos) px = px.next;
@@ -225,7 +263,6 @@ namespace ConwayLifeGame
             timer = 100;
             scale = 10;
             Clear(cur);
-            Program.control.MapReset();
         }
 
         private static void Clear(Head h)

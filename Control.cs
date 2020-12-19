@@ -6,17 +6,28 @@ namespace ConwayLifeGame
 {
     public partial class Control : Form
     {
+        private Bitmap previewBitmap;
+        Graphics graphics;
+        private SolidBrush brush;
+        private SolidBrush rbrush;
+        private Size size;
+
         public Control()
         {
             InitializeComponent();
+            size = PreviewPictureBox.Size;
+            previewBitmap = new Bitmap(size.Width, size.Height);
+            brush = new SolidBrush(Color.Black);
+            rbrush = new SolidBrush(Color.Red);
+            graphics = Graphics.FromImage(previewBitmap);
+            PreviewPictureBox_Paint();
+            MouseStateClick.Checked = true;
         }
 
-        private void panel1_Paint(object sender, PaintEventArgs e)
+        private void PreviewPictureBox_Paint()
         {
             Map.Builtin builtin_info = Map.GetBulitinInfo();
-            Graphics graphics = PreviewPanel.CreateGraphics();
-            SolidBrush brush = new SolidBrush(Color.Black);
-            Size size = PreviewPanel.Size;
+            graphics.Clear(BackColor);
             int x_scale = size.Width / builtin_info.width;
             int y_scale = size.Height / builtin_info.height;
             int scale = x_scale < y_scale ? x_scale : y_scale;
@@ -28,14 +39,12 @@ namespace ConwayLifeGame
                 Rectangle r = new Rectangle(scale * point.X, scale * point.Y, scale, scale);
                 graphics.FillRectangle(brush, r);
             }
-            SolidBrush rbrush = new SolidBrush(Color.Red);
             graphics.FillRectangle(rbrush, new Rectangle(0, 0, scale, scale));
-            rbrush.Dispose();
-            brush.Dispose();
-            graphics.Dispose();
+            graphics.ResetTransform();
+            PreviewPictureBox.Image = previewBitmap;
         }
 
-        private void StartStop_Click(object sender, EventArgs e)
+        public void StartStop_Click(object sender, EventArgs e)
         {
             Map.started = !Map.started;
             if (Map.started) Program.main.ClacTimer.Start();
@@ -44,31 +53,30 @@ namespace ConwayLifeGame
 
         private void Control_FormClosing(object sender, FormClosingEventArgs e)
         {
+            SetVisibleCore(false);
             e.Cancel = true;
-            this.SetVisibleCore(false);
         }
 
-        private void Reset_Click(object sender, EventArgs e)
+        public void Reset_Click(object sender, EventArgs e)
         {
-            Map.Reset();
             Program.main.ClacTimer.Stop();
-        }
-
-        public void MapReset()
-        {
+            // Value Reset
+            Map.Reset();
+            // Control Reset
             XPivot.Value = Map.x_pivot;
             YPivot.Value = Map.y_pivot;
             BuiltinSelect.Value = Map.selected_builtin;
             DirectionSelect.Value = Map.selected_direction;
             Timer.Value = Map.timer;
             MapScale.Value = Map.scale;
-            //Program.main.MainPanel.Invalidate();
+            // Paint Reset
+            Program.main.MainPictureBox_Paint();
         }
 
         private void BuiltinSelect_ValueChanged(object sender, EventArgs e)
         {
             Map.selected_builtin = (byte)BuiltinSelect.Value;
-            PreviewPanel.Invalidate();
+            PreviewPictureBox_Paint();
         }
 
         private void DirectionSelect_ValueChanged(object sender, EventArgs e)
@@ -79,25 +87,33 @@ namespace ConwayLifeGame
         private void XPivot_ValueChanged(object sender, EventArgs e)
         {
             Map.x_pivot = (int)XPivot.Value;
-            Program.main.MainPanel.Invalidate();
+            Program.main.MainPictureBox_Paint();
         }
 
         private void YPivot_ValueChanged(object sender, EventArgs e)
         {
             Map.y_pivot = (int)YPivot.Value;
-            Program.main.MainPanel.Invalidate();
+            Program.main.MainPictureBox_Paint();
         }
 
         private void MapScale_ValueChanged(object sender, EventArgs e)
         {
             Map.scale = (int)MapScale.Value;
-            Program.main.MainPanel.Invalidate();
+            Program.main.MainPictureBox_Paint();
         }
 
         private void Timer_ValueChanged(object sender, EventArgs e)
         {
             Map.timer = (int)Timer.Value;
             Program.main.ClacTimer.Interval = Map.timer;
+        }
+
+        private void MouseState_CheckedChanged(object sender, EventArgs e)
+        {
+            if (MouseStateClick.Checked) Map.mouse_info.state = Map.MouseState.click;
+            else if (MouseStatePen.Checked) Map.mouse_info.state = Map.MouseState.pen;
+            else if (MouseStateEraser.Checked) Map.mouse_info.state = Map.MouseState.eraser;
+            else if (MouseStateDrag.Checked) Map.mouse_info.state = Map.MouseState.drag;
         }
     }
 }

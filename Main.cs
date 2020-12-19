@@ -15,8 +15,14 @@ namespace ConwayLifeGame
         public Main()
         {
             InitializeComponent();
+            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
             Map.Initialize();
             Program.control = new Control();
+            bkgPen = new Pen(Color.FromArgb(0xFF, 0x88, 0x88, 0x88), 1);
+            bkgBitmap = new Bitmap(MainPictureBox.Width, MainPictureBox.Height);
+            mainPicBitmap = new Bitmap(MainPictureBox.Width, MainPictureBox.Height);
+            graphics = Graphics.FromImage(mainPicBitmap);
+            MainPictureBox_Paint();
         }
 
         private void HelpAbout_Click(object sender, EventArgs e)
@@ -46,70 +52,70 @@ namespace ConwayLifeGame
             Application.Exit();
         }
 
+        private Bitmap mainPicBitmap;
         private Graphics graphics;
-        private Pen pen;
-        private Bitmap bitmap;
+        private Pen bkgPen;
+        private Bitmap bkgBitmap;
         private int bitmapScale;
 
-        private void MainPanel_Paint(object sender, PaintEventArgs e)
+        public void MainPictureBox_Paint()
         {
-            if (graphics == null) graphics = MainPanel.CreateGraphics();
-
-            Size size = MainPanel.Size;
+            Size size = MainPictureBox.Size;
             int mid_x = size.Width / 2, mid_y = size.Height / 2;
 
-            if (pen == null) pen = new Pen(Color.FromArgb(0xFF, 0x88, 0x88, 0x88), 1);
-
-            BufferedGraphicsContext context = BufferedGraphicsManager.Current;
-            BufferedGraphics bufferedGraphics = context.Allocate(graphics, e.ClipRectangle);
-            Graphics buffered = bufferedGraphics.Graphics;
-
-            buffered.Clear(BackColor);
-
-            if (bitmap == null || bitmap.Size != size || bitmapScale != Map.scale)
+            // Bkg Bitmap Init
+            if (bkgBitmap.Size != size || bitmapScale != Map.scale)
             {
-                if (bitmap != null) bitmap.Dispose();
-                bitmap = new Bitmap(size.Width, size.Height);
-                Graphics bitmapGraphics = Graphics.FromImage(bitmap);
-                /*  lines in bitmap */
+                bkgBitmap.Dispose();
+                bkgBitmap = new Bitmap(size.Width, size.Height);
+                Graphics bitmapGraphics = Graphics.FromImage(bkgBitmap);
+                /*  lines in bkgBitmap */
                 for (int i = mid_x % Map.scale; i <= size.Width; i += Map.scale)
-                    bitmapGraphics.DrawLine(pen, i, 0, i, size.Height);
+                    bitmapGraphics.DrawLine(bkgPen, i, 0, i, size.Height);
                 for (int i = mid_y % Map.scale; i <= size.Height; i += Map.scale)
-                    bitmapGraphics.DrawLine(pen, 0, i, size.Width, i);
+                    bitmapGraphics.DrawLine(bkgPen, 0, i, size.Width, i);
                 bitmapGraphics.Dispose();
                 bitmapScale = Map.scale;
             }
 
+            // Main Bitmap Init
+            if (mainPicBitmap.Size != size)
+            {
+                graphics.Dispose();
+                mainPicBitmap.Dispose();
+                mainPicBitmap = new Bitmap(size.Width, size.Height);
+                graphics = Graphics.FromImage(mainPicBitmap);
+            }
+            
+            graphics.Clear(BackColor);
+
             /*  lines   */
-            buffered.DrawImage(bitmap, 0, 0);
+            graphics.DrawImage(bkgBitmap, 0, 0);
             /*  blocks  */
-            Map.Draw(buffered, size);
+            Map.Draw(graphics, size);
 
-            bufferedGraphics.Render();
-            bufferedGraphics.Dispose();
+            MainPictureBox.Image = mainPicBitmap;
         }
 
-        private void MainPanel_MouseDown(object sender, MouseEventArgs e)
+        private void MainPictureBox_MouseDown(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left) MainPanel_LButtonDown(e);
-            else if (e.Button == MouseButtons.Right) MainPanel_RButtonDown(e);
-
+            if (e.Button == MouseButtons.Left) MainPictureBox_LButtonDown(e);
+            else if (e.Button == MouseButtons.Right) MainPictureBox_RButtonDown(e);
+            MainPictureBox_Paint();
         }
 
-        private void MainPanel_LButtonDown(MouseEventArgs e)
+        private void MainPictureBox_LButtonDown(MouseEventArgs e)
         {
             if (Map.add_region_info.state != Map.AddRegionState.normal) return;
-            int mid_x = MainPanel.Width / 2, mid_y = MainPanel.Height / 2;
+            int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
             int xc = (e.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot;
             int yc = (e.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot;
-            Map.Change(xc, yc);
             if (Map.add_region_info.state != Map.AddRegionState.normal)
             {
                 if (!Map.add_region_info.count)
                 {
-                    Map.add_region_info.point = new Point();
-                    Map.add_region_info.point.X = xc;
-                    Map.add_region_info.point.Y = yc;
+                    Map.Change(xc, yc);
+                    Map.add_region_info.point = new Point(xc, yc);
                     Map.add_region_info.count = true;
                 }
                 else
@@ -126,40 +132,215 @@ namespace ConwayLifeGame
             }
             else
             {
-                Map.add_region_info.point = new Point(xc, yc);
+                switch (Map.mouse_info.state)
+                {
+                    case Map.MouseState.click:
+                        {
+                            Map.Change(xc, yc);
+                            break;
+                        }
+                    case Map.MouseState.pen:
+                        {
+                            Map.Change(xc, yc);
+                            Map.mouse_info.previous = new Point(xc, yc);
+                            break;
+                        }
+                    case Map.MouseState.eraser:
+                        {
+                            Map.mouse_info.previous = new Point(xc, yc);
+                            Map.Change(xc, yc, 2);
+                            break;
+                        }
+                    case Map.MouseState.drag:
+                        {
+                            Map.mouse_info.previous = new Point(xc, yc);
+                            break;
+                        }
+                }
             }
-            //Program.main.MainPanel.Refresh();
         }
 
-        private void MainPanel_RButtonDown(MouseEventArgs e)
+        private void MainPictureBox_RButtonDown(MouseEventArgs e)
         {
-            int mid_x = MainPanel.Width / 2, mid_y = MainPanel.Height / 2;
+            int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
             int xc = (e.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot;
             int yc = (e.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot;
             Map.AddBuiltin(xc, yc);
-            //MainPanel.Refresh();
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
+        private void MainPictureBox_MouseWheel(object sender, MouseEventArgs e)
+        {
+            int i = (int)Program.control.MapScale.Value;
+            if (!( i <= 2) || !(e.Delta < 0))
+            {
+                i += e.Delta / 40;
+                if (i < 2) i = 3;
+                if (i > 999) i = 999;
+            }
+            Program.control.MapScale.Value = i;
+        }
+
+        private void ClacTimer_Tick(object sender, EventArgs e)
         {
             Map.Calc();
-            //Program.main.MainPanel.Refresh();
+            MainPictureBox_Paint();
         }
 
-        private void Main_Load(object sender, EventArgs e)
+        private void Main_KeyDown(object sender, KeyEventArgs e)
         {
-            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
-            PaintTimer.Start();
+            int move_length = 40;
+            if (e.Control || e.Alt || e.Shift) { e.Handled = false; return; }
+            switch (e.KeyCode)
+            {
+                case Keys.B:
+                    {
+                        Map.keyboard_input_state = Map.KeyboardInputState.bulitin;
+                        break;
+                    }
+                case Keys.D:
+                    {
+                        Map.keyboard_input_state = Map.KeyboardInputState.direction;
+                        break;
+                    }
+                case Keys.C:
+                    {
+                        OptionsShowWindow_Click(null, null);
+                        break;
+                    }
+                case Keys.Space:
+                    {
+                        Program.control.StartStop_Click(null, null);
+                        break;
+                    }
+                case Keys.Delete:
+                    {
+                        Program.control.Reset_Click(null, null);
+                        break; 
+                    }
+                case Keys.Left:
+                    {
+                        Program.control.XPivot.Value -= move_length / Map.scale;
+                        Program.main.MainPictureBox_Paint();
+                        break;
+                    }
+                case Keys.Right:
+                    {
+                        Program.control.XPivot.Value += move_length / Map.scale;
+                        Program.main.MainPictureBox_Paint();
+                        break;
+                    }
+                case Keys.Up:
+                    {
+                        Program.control.YPivot.Value -= move_length / Map.scale;
+                        Program.main.MainPictureBox_Paint();
+                        break;
+                    }
+                case Keys.Down:
+                    {
+                        Program.control.YPivot.Value += move_length / Map.scale;
+                        Program.main.MainPictureBox_Paint();
+                        break;
+                    }
+                case Keys.Oemplus:
+                    {
+                        try { Program.control.Timer.Value -= 5; }
+                        catch (ArgumentOutOfRangeException)
+                        { Program.control.Timer.Value = Program.control.Timer.Minimum; }
+                        break;
+                    }
+                case Keys.OemMinus:
+                    {
+                        try { Program.control.Timer.Value += 5; }
+                        catch (ArgumentOutOfRangeException)
+                        { Program.control.Timer.Value = Program.control.Timer.Maximum; }
+                        break;
+                    }
+                default:
+                    {
+                        if (e.KeyCode >= Keys.D0 && e.KeyCode <= Keys.D9)
+                        {
+                            try
+                            {
+                                switch (Map.keyboard_input_state)
+                                {
+                                    case Map.KeyboardInputState.normal: { throw new Exception(); }
+                                    case Map.KeyboardInputState.bulitin:
+                                        {
+                                            Program.control.BuiltinSelect.Value = e.KeyCode - Keys.D0;
+                                            break;
+                                        }
+                                    case Map.KeyboardInputState.direction:
+                                        {
+                                            Program.control.DirectionSelect.Value = e.KeyCode - Keys.D0;
+                                            break;
+                                        }
+                                }
+                                Map.keyboard_input_state = Map.KeyboardInputState.normal;
+                                e.Handled = true;
+                                return;
+                            }
+                            catch (Exception) { }
+                        }
+                        e.Handled = false;
+                        return;
+                    }
+            }
+            e.Handled = true;
         }
 
-        private void Main_SizeChanged(object sender, EventArgs e)
+        private void MainPictureBox_MouseMove(object sender, MouseEventArgs e)
         {
-            //MainPanel.Invalidate();
-        }
-
-        private void PaintTimer_Tick(object sender, EventArgs e)
-        {
-            MainPanel.Invalidate();
+            if (e.Button == MouseButtons.Left && Map.mouse_info.state != Map.MouseState.click)
+            {
+                int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
+                int xc = (int)((e.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot);
+                int yc = (int)((e.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot);
+                Point pcur = new Point(xc, yc);
+                switch (Map.mouse_info.state)
+                {
+                    case Map.MouseState.drag:
+                        {
+                            Program.control.XPivot.Value = Map.mouse_info.previous.X - xc + Map.x_pivot;
+                            Program.control.YPivot.Value = Map.mouse_info.previous.Y - yc + Map.y_pivot;
+                            break;
+                        }
+                    case Map.MouseState.pen:
+                        {
+                            {
+                                Point s = (pcur.X <= Map.mouse_info.previous.X) ? pcur : Map.mouse_info.previous, t = (s == pcur) ? Map.mouse_info.previous : pcur;
+                                double k = ((double)t.Y - s.Y) / ((double)t.X - s.X);
+                                for (int i = s.X; i <= t.X; i++)
+                                    Map.Change(i, (int)(s.Y + ((double)i - s.X) * k), 1);
+                            }
+                            {
+                                Point s = (pcur.Y <= Map.mouse_info.previous.Y) ? pcur : Map.mouse_info.previous, t = (s == pcur) ? Map.mouse_info.previous : pcur;
+                                double k = ((double)t.X - s.X) / ((double)t.Y - s.Y);
+                                for (int i = s.Y; i <= t.Y; i++)
+                                    Map.Change((int)(s.X + ((double)i - s.Y) * k), i, 1);
+                            }
+                            Map.mouse_info.previous = pcur;
+                            break;
+                        }
+                    case Map.MouseState.eraser:
+                        {
+                            {
+                                Point s = (pcur.X <= Map.mouse_info.previous.X) ? pcur : Map.mouse_info.previous, t = (s == pcur) ? Map.mouse_info.previous : pcur;
+                                double k = ((double)t.Y - s.Y) / ((double)t.X - s.X);
+                                for (int i = s.X; i <= t.X; i++)
+                                    Map.Change(i, (int)(s.Y + ((double)i - s.X) * k), 2);
+                            }
+                            {
+                                Point s = (pcur.Y <= Map.mouse_info.previous.Y) ? pcur : Map.mouse_info.previous, t = (s == pcur) ? Map.mouse_info.previous : pcur;
+                                double k = ((double)t.X - s.X) / ((double)t.Y - s.Y);
+                                for (int i = s.Y; i <= t.Y; i++)
+                                    Map.Change((int)(s.X + ((double)i - s.Y) * k), i, 2);
+                            }
+                            Map.mouse_info.previous = pcur;
+                            break;
+                        }
+                }
+                Program.main.MainPictureBox_Paint();
+            }
         }
     }
 }
