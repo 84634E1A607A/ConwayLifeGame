@@ -91,6 +91,7 @@ namespace ConwayLifeGame
             this.FileOpen.ShowShortcutKeys = false;
             this.FileOpen.Size = new System.Drawing.Size(138, 22);
             this.FileOpen.Text = "&Open";
+            this.FileOpen.Click += new System.EventHandler(this.FileOpen_Click);
             // 
             // FileSave
             // 

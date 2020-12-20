@@ -465,5 +465,14 @@ namespace ConwayLifeGame
                 Map.add_region_info.state = Map.AddRegionState.normal;
             }
         }
+
+        private void FileOpen_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Multiselect = false;
+            openFileDialog.Filter = "JSON Life File|*.lfs|Life File|*.lf||";
+            openFileDialog.DefaultExt = ".lfs";
+            openFileDialog.ShowDialog();
+        }
     }
 }
