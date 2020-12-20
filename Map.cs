@@ -50,8 +50,8 @@ namespace ConwayLifeGame
         public struct AddRegionInfo
         {
             public AddRegionState state;
-            public bool count; 
-            public Point point;             // Rleative to Map
+            public bool count;
+            public MouseState lastMouseState;
         };
         public static AddRegionInfo add_region_info;
 
@@ -68,12 +68,15 @@ namespace ConwayLifeGame
             click,
             pen,
             eraser,
-            drag
+            drag,
+            select
         }
         public struct MouseInfo
         {
             public MouseState state;
             public Point previous;          // Rleative to Map
+            public Point select_first;      // Relative to Window
+            public Point select_second;     // Relative to Window
         }
         public static MouseInfo mouse_info;
 

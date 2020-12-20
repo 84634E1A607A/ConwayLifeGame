@@ -109,6 +109,8 @@ namespace ConwayLifeGame
             else if (MouseStatePen.Checked) Map.mouse_info.state = Map.MouseState.pen;
             else if (MouseStateEraser.Checked) Map.mouse_info.state = Map.MouseState.eraser;
             else if (MouseStateDrag.Checked) Map.mouse_info.state = Map.MouseState.drag;
+            else if (MouseStateSelect.Checked) Map.mouse_info.state = Map.MouseState.select;
+            if (!MouseStateSelect.Checked) Map.mouse_info.select_first = Map.mouse_info.select_second = new Point(0, 0);
         }
     }
 }

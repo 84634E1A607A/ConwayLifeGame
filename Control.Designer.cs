@@ -52,6 +52,7 @@ namespace ConwayLifeGame
             this.MouseStateEraser = new System.Windows.Forms.RadioButton();
             this.MouseStatePen = new System.Windows.Forms.RadioButton();
             this.MouseStateClick = new System.Windows.Forms.RadioButton();
+            this.MouseStateSelect = new System.Windows.Forms.RadioButton();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.PreviewPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.DirectionSelect)).BeginInit();
@@ -311,6 +312,7 @@ namespace ConwayLifeGame
             // 
             // groupBox3
             // 
+            this.groupBox3.Controls.Add(this.MouseStateSelect);
             this.groupBox3.Controls.Add(this.MouseStateDrag);
             this.groupBox3.Controls.Add(this.MouseStateEraser);
             this.groupBox3.Controls.Add(this.MouseStatePen);
@@ -325,7 +327,7 @@ namespace ConwayLifeGame
             // MouseStateDrag
             // 
             this.MouseStateDrag.AutoSize = true;
-            this.MouseStateDrag.Location = new System.Drawing.Point(7, 104);
+            this.MouseStateDrag.Location = new System.Drawing.Point(7, 89);
             this.MouseStateDrag.Name = "MouseStateDrag";
             this.MouseStateDrag.Size = new System.Drawing.Size(50, 19);
             this.MouseStateDrag.TabIndex = 3;
@@ -337,7 +339,7 @@ namespace ConwayLifeGame
             // MouseStateEraser
             // 
             this.MouseStateEraser.AutoSize = true;
-            this.MouseStateEraser.Location = new System.Drawing.Point(7, 78);
+            this.MouseStateEraser.Location = new System.Drawing.Point(7, 67);
             this.MouseStateEraser.Name = "MouseStateEraser";
             this.MouseStateEraser.Size = new System.Drawing.Size(56, 19);
             this.MouseStateEraser.TabIndex = 2;
@@ -349,7 +351,7 @@ namespace ConwayLifeGame
             // MouseStatePen
             // 
             this.MouseStatePen.AutoSize = true;
-            this.MouseStatePen.Location = new System.Drawing.Point(7, 52);
+            this.MouseStatePen.Location = new System.Drawing.Point(7, 45);
             this.MouseStatePen.Name = "MouseStatePen";
             this.MouseStatePen.Size = new System.Drawing.Size(45, 19);
             this.MouseStatePen.TabIndex = 1;
@@ -361,7 +363,7 @@ namespace ConwayLifeGame
             // MouseStateClick
             // 
             this.MouseStateClick.AutoSize = true;
-            this.MouseStateClick.Location = new System.Drawing.Point(7, 27);
+            this.MouseStateClick.Location = new System.Drawing.Point(7, 23);
             this.MouseStateClick.Name = "MouseStateClick";
             this.MouseStateClick.Size = new System.Drawing.Size(51, 19);
             this.MouseStateClick.TabIndex = 0;
@@ -369,6 +371,18 @@ namespace ConwayLifeGame
             this.MouseStateClick.Text = "Click";
             this.MouseStateClick.UseVisualStyleBackColor = true;
             this.MouseStateClick.CheckedChanged += new System.EventHandler(this.MouseState_CheckedChanged);
+            // 
+            // MouseStateSelect
+            // 
+            this.MouseStateSelect.AutoSize = true;
+            this.MouseStateSelect.Location = new System.Drawing.Point(7, 111);
+            this.MouseStateSelect.Name = "MouseStateSelect";
+            this.MouseStateSelect.Size = new System.Drawing.Size(56, 19);
+            this.MouseStateSelect.TabIndex = 4;
+            this.MouseStateSelect.TabStop = true;
+            this.MouseStateSelect.Text = "Select";
+            this.MouseStateSelect.UseVisualStyleBackColor = true;
+            this.MouseStateSelect.CheckedChanged += new System.EventHandler(this.MouseState_CheckedChanged);
             // 
             // Control
             // 
@@ -426,5 +440,6 @@ namespace ConwayLifeGame
         private System.Windows.Forms.RadioButton MouseStatePen;
         private System.Windows.Forms.RadioButton MouseStateClick;
         private System.Windows.Forms.RadioButton MouseStateDrag;
+        private System.Windows.Forms.RadioButton MouseStateSelect;
     }
 }

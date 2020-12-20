@@ -20,6 +20,8 @@ namespace ConwayLifeGame
             Program.control = new Control();
             bkgPen = new Pen(Color.FromArgb(0xFF, 0x88, 0x88, 0x88), 1);
             bkgBitmap = new Bitmap(MainPictureBox.Width, MainPictureBox.Height);
+            selectPen = new Pen(Color.FromArgb(0xAA, Color.DeepSkyBlue));
+            selectBrush = new SolidBrush(Color.FromArgb(0x55, Color.CadetBlue));
             mainPicBitmap = new Bitmap(MainPictureBox.Width, MainPictureBox.Height);
             graphics = Graphics.FromImage(mainPicBitmap);
             paintThread = new Thread(new ThreadStart(PaintThread));
@@ -57,6 +59,8 @@ namespace ConwayLifeGame
         private Graphics graphics;
         private Pen bkgPen;
         private Bitmap bkgBitmap;
+        private Pen selectPen;
+        private SolidBrush selectBrush;
         private int bitmapScale;
         private Thread paintThread;
 
@@ -95,6 +99,17 @@ namespace ConwayLifeGame
             graphics.DrawImage(bkgBitmap, 0, 0);
             /*  blocks  */
             Map.Draw(graphics, size);
+            /*  select  */
+            int l = Math.Min(Map.mouse_info.select_first.X, Map.mouse_info.select_second.X); 
+            int r = Math.Max(Map.mouse_info.select_first.X, Map.mouse_info.select_second.X); 
+            int t = Math.Min(Map.mouse_info.select_first.Y, Map.mouse_info.select_second.Y); 
+            int b = Math.Max(Map.mouse_info.select_first.Y, Map.mouse_info.select_second.Y);
+            if (r - l != 0 || b - t != 0)
+            {
+                Rectangle rect = new Rectangle(l, t, r - l, b - t);
+                graphics.FillRectangle(selectBrush, rect);
+                graphics.DrawRectangle(selectPen, rect);
+            }
 
             MainPictureBox.Image = mainPicBitmap;
         }
@@ -124,7 +139,7 @@ namespace ConwayLifeGame
             int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
             int xc = (e.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot;
             int yc = (e.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot;
-            if (Map.add_region_info.state != Map.AddRegionState.normal)
+            /*if (Map.add_region_info.state != Map.AddRegionState.normal)
             {
                 if (!Map.add_region_info.count)
                 {
@@ -145,33 +160,39 @@ namespace ConwayLifeGame
                 }
             }
             else
+            {*/
+            switch (Map.mouse_info.state)
             {
-                switch (Map.mouse_info.state)
-                {
-                    case Map.MouseState.click:
-                        {
-                            Map.Change(xc, yc);
-                            break;
-                        }
-                    case Map.MouseState.pen:
-                        {
-                            Map.Change(xc, yc);
-                            Map.mouse_info.previous = new Point(xc, yc);
-                            break;
-                        }
-                    case Map.MouseState.eraser:
-                        {
-                            Map.mouse_info.previous = new Point(xc, yc);
-                            Map.Change(xc, yc, 2);
-                            break;
-                        }
-                    case Map.MouseState.drag:
-                        {
-                            Map.mouse_info.previous = new Point(xc, yc);
-                            break;
-                        }
-                }
+                case Map.MouseState.click:
+                    {
+                        Map.Change(xc, yc);
+                        break;
+                    }
+                case Map.MouseState.pen:
+                    {
+                        Map.Change(xc, yc);
+                        Map.mouse_info.previous = new Point(xc, yc);
+                        break;
+                    }
+                case Map.MouseState.eraser:
+                    {
+                        Map.mouse_info.previous = new Point(xc, yc);
+                        Map.Change(xc, yc, 2);
+                        break;
+                    }
+                case Map.MouseState.drag:
+                    {
+                        Map.mouse_info.previous = new Point(xc, yc);
+                        break;
+                    }
+                case Map.MouseState.select:
+                    {
+                        Map.mouse_info.select_first = new Point(e.X, e.Y);
+                        Map.mouse_info.select_second = new Point(e.X, e.Y);
+                        break;
+                    }
             }
+            //}
         }
 
         private void MainPictureBox_RButtonDown(MouseEventArgs e)
@@ -345,6 +366,11 @@ namespace ConwayLifeGame
                                     Map.Change((int)(s.X + ((double)i - s.Y) * k), i, 2);
                             }
                             Map.mouse_info.previous = pcur;
+                            break;
+                        }
+                    case Map.MouseState.select:
+                        {
+                            Map.mouse_info.select_second = new Point(e.X, e.Y);
                             break;
                         }
                 }
