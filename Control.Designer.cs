@@ -48,11 +48,11 @@ namespace ConwayLifeGame
             this.XPivot = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.MouseStateSelect = new System.Windows.Forms.RadioButton();
             this.MouseStateDrag = new System.Windows.Forms.RadioButton();
             this.MouseStateEraser = new System.Windows.Forms.RadioButton();
             this.MouseStatePen = new System.Windows.Forms.RadioButton();
             this.MouseStateClick = new System.Windows.Forms.RadioButton();
-            this.MouseStateSelect = new System.Windows.Forms.RadioButton();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.PreviewPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.DirectionSelect)).BeginInit();
@@ -75,23 +75,23 @@ namespace ConwayLifeGame
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Location = new System.Drawing.Point(13, 13);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(235, 144);
+            this.groupBox1.Size = new System.Drawing.Size(203, 144);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Builtin controls";
             // 
             // PreviewPictureBox
             // 
-            this.PreviewPictureBox.Location = new System.Drawing.Point(67, 48);
+            this.PreviewPictureBox.Location = new System.Drawing.Point(53, 48);
             this.PreviewPictureBox.Name = "PreviewPictureBox";
-            this.PreviewPictureBox.Size = new System.Drawing.Size(162, 90);
+            this.PreviewPictureBox.Size = new System.Drawing.Size(144, 90);
             this.PreviewPictureBox.TabIndex = 0;
             this.PreviewPictureBox.TabStop = false;
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(13, 83);
+            this.label3.Location = new System.Drawing.Point(1, 83);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(48, 15);
             this.label3.TabIndex = 4;
@@ -99,7 +99,7 @@ namespace ConwayLifeGame
             // 
             // DirectionSelect
             // 
-            this.DirectionSelect.Location = new System.Drawing.Point(186, 19);
+            this.DirectionSelect.Location = new System.Drawing.Point(158, 19);
             this.DirectionSelect.Maximum = new decimal(new int[] {
             7,
             0,
@@ -113,7 +113,7 @@ namespace ConwayLifeGame
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(125, 21);
+            this.label2.Location = new System.Drawing.Point(97, 21);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(55, 15);
             this.label2.TabIndex = 2;
@@ -121,7 +121,7 @@ namespace ConwayLifeGame
             // 
             // BuiltinSelect
             // 
-            this.BuiltinSelect.Location = new System.Drawing.Point(67, 19);
+            this.BuiltinSelect.Location = new System.Drawing.Point(53, 19);
             this.BuiltinSelect.Maximum = new decimal(new int[] {
             5,
             0,
@@ -135,7 +135,7 @@ namespace ConwayLifeGame
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(20, 21);
+            this.label1.Location = new System.Drawing.Point(6, 21);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(41, 15);
             this.label1.TabIndex = 0;
@@ -155,14 +155,14 @@ namespace ConwayLifeGame
             this.groupBox2.Controls.Add(this.label4);
             this.groupBox2.Location = new System.Drawing.Point(13, 163);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(235, 142);
+            this.groupBox2.Size = new System.Drawing.Size(203, 144);
             this.groupBox2.TabIndex = 1;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Map controls";
             // 
             // Reset
             // 
-            this.Reset.Location = new System.Drawing.Point(143, 110);
+            this.Reset.Location = new System.Drawing.Point(106, 110);
             this.Reset.Name = "Reset";
             this.Reset.Size = new System.Drawing.Size(75, 23);
             this.Reset.TabIndex = 10;
@@ -172,7 +172,7 @@ namespace ConwayLifeGame
             // 
             // StartStop
             // 
-            this.StartStop.Location = new System.Drawing.Point(20, 110);
+            this.StartStop.Location = new System.Drawing.Point(8, 110);
             this.StartStop.Name = "StartStop";
             this.StartStop.Size = new System.Drawing.Size(75, 23);
             this.StartStop.TabIndex = 9;
@@ -182,7 +182,7 @@ namespace ConwayLifeGame
             // 
             // Timer
             // 
-            this.Timer.Location = new System.Drawing.Point(183, 81);
+            this.Timer.Location = new System.Drawing.Point(146, 81);
             this.Timer.Maximum = new decimal(new int[] {
             10000,
             0,
@@ -206,7 +206,7 @@ namespace ConwayLifeGame
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(143, 83);
+            this.label7.Location = new System.Drawing.Point(106, 83);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(37, 15);
             this.label7.TabIndex = 7;
@@ -214,7 +214,7 @@ namespace ConwayLifeGame
             // 
             // MapScale
             // 
-            this.MapScale.Location = new System.Drawing.Point(60, 81);
+            this.MapScale.Location = new System.Drawing.Point(48, 81);
             this.MapScale.Maximum = new decimal(new int[] {
             10000,
             0,
@@ -238,7 +238,7 @@ namespace ConwayLifeGame
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(20, 83);
+            this.label6.Location = new System.Drawing.Point(8, 83);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(34, 15);
             this.label6.TabIndex = 5;
@@ -247,7 +247,7 @@ namespace ConwayLifeGame
             // YPivot
             // 
             this.YPivot.Hexadecimal = true;
-            this.YPivot.Location = new System.Drawing.Point(125, 50);
+            this.YPivot.Location = new System.Drawing.Point(88, 50);
             this.YPivot.Maximum = new decimal(new int[] {
             268435455,
             0,
@@ -271,7 +271,7 @@ namespace ConwayLifeGame
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(32, 52);
+            this.label5.Location = new System.Drawing.Point(20, 52);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(59, 15);
             this.label5.TabIndex = 3;
@@ -280,7 +280,7 @@ namespace ConwayLifeGame
             // XPivot
             // 
             this.XPivot.Hexadecimal = true;
-            this.XPivot.Location = new System.Drawing.Point(125, 21);
+            this.XPivot.Location = new System.Drawing.Point(88, 21);
             this.XPivot.Maximum = new decimal(new int[] {
             268435455,
             0,
@@ -304,7 +304,7 @@ namespace ConwayLifeGame
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(32, 23);
+            this.label4.Location = new System.Drawing.Point(20, 23);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(59, 15);
             this.label4.TabIndex = 0;
@@ -317,17 +317,29 @@ namespace ConwayLifeGame
             this.groupBox3.Controls.Add(this.MouseStateEraser);
             this.groupBox3.Controls.Add(this.MouseStatePen);
             this.groupBox3.Controls.Add(this.MouseStateClick);
-            this.groupBox3.Location = new System.Drawing.Point(254, 13);
+            this.groupBox3.Location = new System.Drawing.Point(222, 13);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(105, 144);
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Mouse controls";
             // 
+            // MouseStateSelect
+            // 
+            this.MouseStateSelect.AutoSize = true;
+            this.MouseStateSelect.Location = new System.Drawing.Point(10, 111);
+            this.MouseStateSelect.Name = "MouseStateSelect";
+            this.MouseStateSelect.Size = new System.Drawing.Size(56, 19);
+            this.MouseStateSelect.TabIndex = 4;
+            this.MouseStateSelect.TabStop = true;
+            this.MouseStateSelect.Text = "Select";
+            this.MouseStateSelect.UseVisualStyleBackColor = true;
+            this.MouseStateSelect.CheckedChanged += new System.EventHandler(this.MouseState_CheckedChanged);
+            // 
             // MouseStateDrag
             // 
             this.MouseStateDrag.AutoSize = true;
-            this.MouseStateDrag.Location = new System.Drawing.Point(7, 89);
+            this.MouseStateDrag.Location = new System.Drawing.Point(10, 89);
             this.MouseStateDrag.Name = "MouseStateDrag";
             this.MouseStateDrag.Size = new System.Drawing.Size(50, 19);
             this.MouseStateDrag.TabIndex = 3;
@@ -339,7 +351,7 @@ namespace ConwayLifeGame
             // MouseStateEraser
             // 
             this.MouseStateEraser.AutoSize = true;
-            this.MouseStateEraser.Location = new System.Drawing.Point(7, 67);
+            this.MouseStateEraser.Location = new System.Drawing.Point(10, 67);
             this.MouseStateEraser.Name = "MouseStateEraser";
             this.MouseStateEraser.Size = new System.Drawing.Size(56, 19);
             this.MouseStateEraser.TabIndex = 2;
@@ -351,7 +363,7 @@ namespace ConwayLifeGame
             // MouseStatePen
             // 
             this.MouseStatePen.AutoSize = true;
-            this.MouseStatePen.Location = new System.Drawing.Point(7, 45);
+            this.MouseStatePen.Location = new System.Drawing.Point(10, 45);
             this.MouseStatePen.Name = "MouseStatePen";
             this.MouseStatePen.Size = new System.Drawing.Size(45, 19);
             this.MouseStatePen.TabIndex = 1;
@@ -363,7 +375,7 @@ namespace ConwayLifeGame
             // MouseStateClick
             // 
             this.MouseStateClick.AutoSize = true;
-            this.MouseStateClick.Location = new System.Drawing.Point(7, 23);
+            this.MouseStateClick.Location = new System.Drawing.Point(10, 23);
             this.MouseStateClick.Name = "MouseStateClick";
             this.MouseStateClick.Size = new System.Drawing.Size(51, 19);
             this.MouseStateClick.TabIndex = 0;
@@ -372,23 +384,11 @@ namespace ConwayLifeGame
             this.MouseStateClick.UseVisualStyleBackColor = true;
             this.MouseStateClick.CheckedChanged += new System.EventHandler(this.MouseState_CheckedChanged);
             // 
-            // MouseStateSelect
-            // 
-            this.MouseStateSelect.AutoSize = true;
-            this.MouseStateSelect.Location = new System.Drawing.Point(7, 111);
-            this.MouseStateSelect.Name = "MouseStateSelect";
-            this.MouseStateSelect.Size = new System.Drawing.Size(56, 19);
-            this.MouseStateSelect.TabIndex = 4;
-            this.MouseStateSelect.TabStop = true;
-            this.MouseStateSelect.Text = "Select";
-            this.MouseStateSelect.UseVisualStyleBackColor = true;
-            this.MouseStateSelect.CheckedChanged += new System.EventHandler(this.MouseState_CheckedChanged);
-            // 
             // Control
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(371, 319);
+            this.ClientSize = new System.Drawing.Size(334, 319);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
@@ -436,10 +436,10 @@ namespace ConwayLifeGame
         public System.Windows.Forms.NumericUpDown Timer;
         public System.Windows.Forms.NumericUpDown BuiltinSelect;
         public System.Windows.Forms.NumericUpDown DirectionSelect;
-        private System.Windows.Forms.RadioButton MouseStateEraser;
-        private System.Windows.Forms.RadioButton MouseStatePen;
-        private System.Windows.Forms.RadioButton MouseStateClick;
-        private System.Windows.Forms.RadioButton MouseStateDrag;
-        private System.Windows.Forms.RadioButton MouseStateSelect;
+        public System.Windows.Forms.RadioButton MouseStateEraser;
+        public System.Windows.Forms.RadioButton MouseStatePen;
+        public System.Windows.Forms.RadioButton MouseStateClick;
+        public System.Windows.Forms.RadioButton MouseStateDrag;
+        public System.Windows.Forms.RadioButton MouseStateSelect;
     }
 }

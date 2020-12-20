@@ -120,8 +120,9 @@ namespace ConwayLifeGame
             {
                 while (true)
                 {
-                    Thread.Sleep(20);
-                    MainPictureBox_Paint();
+                    Thread.Sleep(5);
+                    try { MainPictureBox_Paint(); }
+                    catch (InvalidOperationException) { Thread.Sleep(20); }
                 }
             }
             catch (ArgumentException) { return; }
@@ -135,32 +136,9 @@ namespace ConwayLifeGame
 
         private void MainPictureBox_LButtonDown(MouseEventArgs e)
         {
-            if (Map.add_region_info.state != Map.AddRegionState.normal) return;
             int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
             int xc = (e.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot;
             int yc = (e.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot;
-            /*if (Map.add_region_info.state != Map.AddRegionState.normal)
-            {
-                if (!Map.add_region_info.count)
-                {
-                    Map.Change(xc, yc);
-                    Map.add_region_info.point = new Point(xc, yc);
-                    Map.add_region_info.count = true;
-                }
-                else
-                {
-                    Point p1 = new Point(), p2 = new Point();
-                    p1.X = Math.Min(Map.add_region_info.point.X, xc);
-                    p1.Y = Math.Min(Map.add_region_info.point.Y, yc);
-                    p2.X = Math.Max(Map.add_region_info.point.X, xc);
-                    p2.Y = Math.Max(Map.add_region_info.point.Y, yc);
-                    Map.AddDeleteRegion(p1, p2);
-                    Map.add_region_info.count = false;
-                    Map.add_region_info.state = Map.AddRegionState.normal;
-                }
-            }
-            else
-            {*/
             switch (Map.mouse_info.state)
             {
                 case Map.MouseState.click:
@@ -187,12 +165,12 @@ namespace ConwayLifeGame
                     }
                 case Map.MouseState.select:
                     {
+                        if (Map.started) Program.control.StartStop_Click(null, null);
                         Map.mouse_info.select_first = new Point(e.X, e.Y);
                         Map.mouse_info.select_second = new Point(e.X, e.Y);
                         break;
                     }
             }
-            //}
         }
 
         private void MainPictureBox_RButtonDown(MouseEventArgs e)
@@ -201,6 +179,99 @@ namespace ConwayLifeGame
             int xc = (e.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot;
             int yc = (e.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot;
             Map.AddBuiltin(xc, yc);
+        }
+
+        private void MainPictureBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left && Map.mouse_info.state != Map.MouseState.click)
+            {
+                int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
+                int xc = (int)((e.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot);
+                int yc = (int)((e.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot);
+                Point pcur = new Point(xc, yc);
+                switch (Map.mouse_info.state)
+                {
+                    case Map.MouseState.drag:
+                        {
+                            Program.control.XPivot.Value = Map.mouse_info.previous.X - xc + Map.x_pivot;
+                            Program.control.YPivot.Value = Map.mouse_info.previous.Y - yc + Map.y_pivot;
+                            break;
+                        }
+                    case Map.MouseState.pen:
+                        {
+                            {
+                                Point s = (pcur.X <= Map.mouse_info.previous.X) ? pcur : Map.mouse_info.previous, t = (s == pcur) ? Map.mouse_info.previous : pcur;
+                                double k = ((double)t.Y - s.Y) / ((double)t.X - s.X);
+                                for (int i = s.X; i <= t.X; i++)
+                                    Map.Change(i, (int)(s.Y + ((double)i - s.X) * k), 1);
+                            }
+                            {
+                                Point s = (pcur.Y <= Map.mouse_info.previous.Y) ? pcur : Map.mouse_info.previous, t = (s == pcur) ? Map.mouse_info.previous : pcur;
+                                double k = ((double)t.X - s.X) / ((double)t.Y - s.Y);
+                                for (int i = s.Y; i <= t.Y; i++)
+                                    Map.Change((int)(s.X + ((double)i - s.Y) * k), i, 1);
+                            }
+                            Map.mouse_info.previous = pcur;
+                            break;
+                        }
+                    case Map.MouseState.eraser:
+                        {
+                            {
+                                Point s = (pcur.X <= Map.mouse_info.previous.X) ? pcur : Map.mouse_info.previous, t = (s == pcur) ? Map.mouse_info.previous : pcur;
+                                double k = ((double)t.Y - s.Y) / ((double)t.X - s.X);
+                                for (int i = s.X; i <= t.X; i++)
+                                    Map.Change(i, (int)(s.Y + ((double)i - s.X) * k), 2);
+                            }
+                            {
+                                Point s = (pcur.Y <= Map.mouse_info.previous.Y) ? pcur : Map.mouse_info.previous, t = (s == pcur) ? Map.mouse_info.previous : pcur;
+                                double k = ((double)t.X - s.X) / ((double)t.Y - s.Y);
+                                for (int i = s.Y; i <= t.Y; i++)
+                                    Map.Change((int)(s.X + ((double)i - s.Y) * k), i, 2);
+                            }
+                            Map.mouse_info.previous = pcur;
+                            break;
+                        }
+                    case Map.MouseState.select:
+                        {
+                            Map.mouse_info.select_second = new Point(e.X, e.Y);
+                            break;
+                        }
+                }
+            }
+        }
+
+        private void MainPictureBox_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (Map.add_region_info.state != Map.AddRegionState.normal)
+            {
+                int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
+                int xc = (int)((Map.mouse_info.select_first.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot);
+                int yc = (int)((Map.mouse_info.select_first.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot);
+                Point p1 = new Point(xc, yc);
+                xc = (int)((Map.mouse_info.select_second.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot);
+                yc = (int)((Map.mouse_info.select_second.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot);
+                Point p2 = new Point(xc, yc);
+                Map.AddDeleteRegion(p1, p2);
+                Map.mouse_info.select_first = Map.mouse_info.select_second = new Point();
+                Map.add_region_info.state = Map.AddRegionState.normal;
+                
+                switch (Map.add_region_info.lastMouseState)
+                {
+                    case Map.MouseState.click:
+                        Program.control.MouseStateClick.Checked = true;
+                        break;
+                    case Map.MouseState.pen:
+                        Program.control.MouseStatePen.Checked = true;
+                        break;
+                    case Map.MouseState.eraser:
+                        Program.control.MouseStateEraser.Checked = true;
+                        break;
+                    case Map.MouseState.drag:
+                        Program.control.MouseStateDrag.Checked = true;
+                        break;
+                    default: break;
+                }
+            }
         }
 
         private void MainPictureBox_MouseWheel(object sender, MouseEventArgs e)
@@ -318,71 +389,81 @@ namespace ConwayLifeGame
             e.Handled = true;
         }
 
-        private void MainPictureBox_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left && Map.mouse_info.state != Map.MouseState.click)
-            {
-                int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
-                int xc = (int)((e.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot);
-                int yc = (int)((e.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot);
-                Point pcur = new Point(xc, yc);
-                switch (Map.mouse_info.state)
-                {
-                    case Map.MouseState.drag:
-                        {
-                            Program.control.XPivot.Value = Map.mouse_info.previous.X - xc + Map.x_pivot;
-                            Program.control.YPivot.Value = Map.mouse_info.previous.Y - yc + Map.y_pivot;
-                            break;
-                        }
-                    case Map.MouseState.pen:
-                        {
-                            {
-                                Point s = (pcur.X <= Map.mouse_info.previous.X) ? pcur : Map.mouse_info.previous, t = (s == pcur) ? Map.mouse_info.previous : pcur;
-                                double k = ((double)t.Y - s.Y) / ((double)t.X - s.X);
-                                for (int i = s.X; i <= t.X; i++)
-                                    Map.Change(i, (int)(s.Y + ((double)i - s.X) * k), 1);
-                            }
-                            {
-                                Point s = (pcur.Y <= Map.mouse_info.previous.Y) ? pcur : Map.mouse_info.previous, t = (s == pcur) ? Map.mouse_info.previous : pcur;
-                                double k = ((double)t.X - s.X) / ((double)t.Y - s.Y);
-                                for (int i = s.Y; i <= t.Y; i++)
-                                    Map.Change((int)(s.X + ((double)i - s.Y) * k), i, 1);
-                            }
-                            Map.mouse_info.previous = pcur;
-                            break;
-                        }
-                    case Map.MouseState.eraser:
-                        {
-                            {
-                                Point s = (pcur.X <= Map.mouse_info.previous.X) ? pcur : Map.mouse_info.previous, t = (s == pcur) ? Map.mouse_info.previous : pcur;
-                                double k = ((double)t.Y - s.Y) / ((double)t.X - s.X);
-                                for (int i = s.X; i <= t.X; i++)
-                                    Map.Change(i, (int)(s.Y + ((double)i - s.X) * k), 2);
-                            }
-                            {
-                                Point s = (pcur.Y <= Map.mouse_info.previous.Y) ? pcur : Map.mouse_info.previous, t = (s == pcur) ? Map.mouse_info.previous : pcur;
-                                double k = ((double)t.X - s.X) / ((double)t.Y - s.Y);
-                                for (int i = s.Y; i <= t.Y; i++)
-                                    Map.Change((int)(s.X + ((double)i - s.Y) * k), i, 2);
-                            }
-                            Map.mouse_info.previous = pcur;
-                            break;
-                        }
-                    case Map.MouseState.select:
-                        {
-                            Map.mouse_info.select_second = new Point(e.X, e.Y);
-                            break;
-                        }
-                }
-            }
-        }
-
         private void Main_FormClosed(object sender, FormClosedEventArgs e)
         {
             graphics.Dispose();
             bkgPen.Dispose();
             bkgBitmap.Dispose();
             mainPicBitmap.Dispose();
+        }
+
+        private void OptionsCreateRandom_Click(object sender, EventArgs e)
+        {
+            Map.add_region_info.state = Map.AddRegionState.random;
+            if (Map.mouse_info.select_first.IsEmpty)
+            {
+                Map.add_region_info.lastMouseState = Map.mouse_info.state;
+                Program.control.MouseStateSelect.Checked = true;
+            }
+            else
+            {
+                int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
+                int xc = (int)((Map.mouse_info.select_first.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot);
+                int yc = (int)((Map.mouse_info.select_first.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot);
+                Point p1 = new Point(xc, yc);
+                xc = (int)((Map.mouse_info.select_second.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot);
+                yc = (int)((Map.mouse_info.select_second.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot);
+                Point p2 = new Point(xc, yc);
+                Map.AddDeleteRegion(p1, p2);
+                Map.mouse_info.select_first = Map.mouse_info.select_second = new Point();
+                Map.add_region_info.state = Map.AddRegionState.normal;
+            }
+        }
+
+        private void OptionsCreateSolid_Click(object sender, EventArgs e)
+        {
+            Map.add_region_info.state = Map.AddRegionState.insert;
+            if (Map.mouse_info.select_first.IsEmpty)
+            {
+                Map.add_region_info.lastMouseState = Map.mouse_info.state;
+                Program.control.MouseStateSelect.Checked = true;
+            }
+            else
+            {
+                int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
+                int xc = (int)((Map.mouse_info.select_first.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot);
+                int yc = (int)((Map.mouse_info.select_first.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot);
+                Point p1 = new Point(xc, yc);
+                xc = (int)((Map.mouse_info.select_second.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot);
+                yc = (int)((Map.mouse_info.select_second.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot);
+                Point p2 = new Point(xc, yc);
+                Map.AddDeleteRegion(p1, p2);
+                Map.mouse_info.select_first = Map.mouse_info.select_second = new Point();
+                Map.add_region_info.state = Map.AddRegionState.normal;
+            }
+        }
+
+        private void OptionsDeleteRegion_Click(object sender, EventArgs e)
+        {
+            Map.add_region_info.state = Map.AddRegionState.delete;
+            if (Map.mouse_info.select_first.IsEmpty)
+            {
+                Map.add_region_info.lastMouseState = Map.mouse_info.state;
+                Program.control.MouseStateSelect.Checked = true;
+            }
+            else
+            {
+                int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
+                int xc = (int)((Map.mouse_info.select_first.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot);
+                int yc = (int)((Map.mouse_info.select_first.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot);
+                Point p1 = new Point(xc, yc);
+                xc = (int)((Map.mouse_info.select_second.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot);
+                yc = (int)((Map.mouse_info.select_second.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot);
+                Point p2 = new Point(xc, yc);
+                Map.AddDeleteRegion(p1, p2);
+                Map.mouse_info.select_first = Map.mouse_info.select_second = new Point();
+                Map.add_region_info.state = Map.AddRegionState.normal;
+            }
         }
     }
 }

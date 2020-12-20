@@ -133,18 +133,21 @@ namespace ConwayLifeGame
             this.OptionsCreateSolid.Name = "OptionsCreateSolid";
             this.OptionsCreateSolid.Size = new System.Drawing.Size(234, 22);
             this.OptionsCreateSolid.Text = "&Create Solid Region";
+            this.OptionsCreateSolid.Click += new System.EventHandler(this.OptionsCreateSolid_Click);
             // 
             // OptionsCreateRandom
             // 
             this.OptionsCreateRandom.Name = "OptionsCreateRandom";
             this.OptionsCreateRandom.Size = new System.Drawing.Size(234, 22);
             this.OptionsCreateRandom.Text = "Create &Random Region";
+            this.OptionsCreateRandom.Click += new System.EventHandler(this.OptionsCreateRandom_Click);
             // 
             // OptionsDeleteRegion
             // 
             this.OptionsDeleteRegion.Name = "OptionsDeleteRegion";
             this.OptionsDeleteRegion.Size = new System.Drawing.Size(234, 22);
             this.OptionsDeleteRegion.Text = "&Delete Solid Region";
+            this.OptionsDeleteRegion.Click += new System.EventHandler(this.OptionsDeleteRegion_Click);
             // 
             // MainMenuHelp
             // 
@@ -184,6 +187,7 @@ namespace ConwayLifeGame
             this.MainPictureBox.TabStop = false;
             this.MainPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseDown);
             this.MainPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseMove);
+            this.MainPictureBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseUp);
             this.MainPictureBox.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseWheel);
             // 
             // ClacTimer

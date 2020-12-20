@@ -317,7 +317,8 @@ namespace ConwayLifeGame
                         Random r = new Random();
                         for (int x = left; x <= right; x++)
                             for (int y = bottom; y >= top; y--)
-                                acce = Change(x, y, r.Next(0, 2), acce);
+                                if (r.Next(0, 2) != 0)
+                                    acce = Change(x, y, 1, acce);
                         break;
                     }
                 case AddRegionState.insert:
