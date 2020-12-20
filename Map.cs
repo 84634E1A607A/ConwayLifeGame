@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Threading;
+using System.IO;
 
 namespace ConwayLifeGame
 {
@@ -82,7 +83,6 @@ namespace ConwayLifeGame
 
         public static int selected_builtin, selected_direction, x_pivot = 0x08000000, y_pivot = 0x08000000, timer = 100, scale = 10;
         public static bool started;
-        private static Thread calc_thread = new Thread(new ThreadStart(CalcCycle));
         
         private static Head Add(int xpos, int ypos, Head acce)
         {
@@ -193,14 +193,60 @@ namespace ConwayLifeGame
             Clear(nxt);
         }
 
-        private static void CalcCycle()
+        private static uint ReadInt(FileStream f)
         {
-            
+            uint o = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                int b = f.ReadByte();
+                if (b == -1) throw new EndOfStreamException("Unexpected End Of File");
+                o += (uint)b << i * 8;
+            }
+            return o;
         }
 
-        //public void Load(string f);
+        public static void LoadLF(string f)
+        {
+            // Stop
+            Program.control.Reset_Click(null, null);
+            try
+            {
+                FileStream file = new FileStream(f, FileMode.Open);
+                if (!file.CanRead)
+                {
+                    throw new Exception("Cannot open file");
+                }
+                x_pivot = (int)ReadInt(file);
+                y_pivot = (int)ReadInt(file);
+                if (ReadInt(file) != 0xffffffff)
+                {
+                    Program.control.Reset_Click(null, null);
+                    throw new Exception("Bad file! Map reset");
+                }
+                while (true)
+                {
+                    uint x, y;
+                    x = ReadInt(file);
+                    y = ReadInt(file);
+                    if (x == 0xffffffff && y == 0xfffffffd) break;
+                    Change((int)x, (int)y);
+                }
+            }
+            catch (Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show(e.Message, "Error", System.Windows.Forms.MessageBoxButtons.OK);
+            }
+        }
 
-        //public void Dump(string f);
+        public static void LoadLFS(string f) 
+        {
+
+        }
+
+        public static void DumpLFS(string f)
+        {
+
+        }
 
         public static void Draw(Graphics graphics, Size size)
         {
@@ -350,7 +396,6 @@ namespace ConwayLifeGame
         public static void Initialize()
         {
             InitBuiltins();
-            calc_thread.Start();
         }
 
         private static void InitBuiltins()

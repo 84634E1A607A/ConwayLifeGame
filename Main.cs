@@ -472,7 +472,12 @@ namespace ConwayLifeGame
             openFileDialog.Multiselect = false;
             openFileDialog.Filter = "JSON Life File|*.lfs|Life File|*.lf||";
             openFileDialog.DefaultExt = ".lfs";
-            openFileDialog.ShowDialog();
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string fname = openFileDialog.FileName;
+                if (fname.EndsWith(".lfs")) Map.LoadLFS(fname);
+                if (fname.EndsWith(".lf")) Map.LoadLF(fname);
+            }
         }
     }
 }
