@@ -2,6 +2,8 @@
 using System.Drawing;
 using System.Threading;
 using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ConwayLifeGame
 {
@@ -193,32 +195,18 @@ namespace ConwayLifeGame
             Clear(nxt);
         }
 
-        private static uint ReadInt(FileStream f)
-        {
-            uint o = 0;
-            for (int i = 0; i < 4; i++)
-            {
-                int b = f.ReadByte();
-                if (b == -1) throw new EndOfStreamException("Unexpected End Of File");
-                o += (uint)b << i * 8;
-            }
-            return o;
-        }
-
         public static void LoadLF(string f)
         {
             // Stop
             Program.control.Reset_Click(null, null);
+            FileStream fs = null;
             try
             {
-                FileStream file = new FileStream(f, FileMode.Open);
-                if (!file.CanRead)
-                {
-                    throw new Exception("Cannot open file");
-                }
-                x_pivot = (int)ReadInt(file);
-                y_pivot = (int)ReadInt(file);
-                if (ReadInt(file) != 0xffffffff)
+                fs = new FileStream(f, FileMode.Open);
+                BinaryReader reader = new BinaryReader(fs);
+                x_pivot = reader.ReadInt32();
+                y_pivot = reader.ReadInt32();
+                if (reader.ReadUInt32() != 0xffffffff)
                 {
                     Program.control.Reset_Click(null, null);
                     throw new Exception("Bad file! Map reset");
@@ -226,8 +214,8 @@ namespace ConwayLifeGame
                 while (true)
                 {
                     uint x, y;
-                    x = ReadInt(file);
-                    y = ReadInt(file);
+                    x = reader.ReadUInt32();
+                    y = reader.ReadUInt32();
                     if (x == 0xffffffff && y == 0xfffffffd) break;
                     Change((int)x, (int)y);
                 }
@@ -235,17 +223,50 @@ namespace ConwayLifeGame
             catch (Exception e)
             {
                 System.Windows.Forms.MessageBox.Show(e.Message, "Error", System.Windows.Forms.MessageBoxButtons.OK);
+                if (fs != null && fs.CanRead) fs.Close();
             }
         }
 
         public static void LoadLFS(string f) 
         {
+            Program.control.Reset_Click(null, null);
+            
+            string str = File.ReadAllText(f);
+            DumpStruct s = JsonSerializer.Deserialize<DumpStruct>(str);
 
+            x_pivot = s.xp; y_pivot = s.yp; scale = s.s;
+            foreach (Point p in s.p) { Change(p.X, p.Y); }
+        }
+
+        private class DumpStruct
+        {
+            public Point[] p { get; set; }
+            public int xp { get; set; }
+            public int yp { get; set; }
+            public int s { get; set; }
         }
 
         public static void DumpLFS(string f)
         {
+            if (started) Program.control.StartStop_Click(null, null);
 
+            DumpStruct s = new DumpStruct();
+
+            // Points
+            int c = 0;
+            for (Head h = cur; h != null; h = h.next) for (Node n = h.node.next; n != null; n = n.next) c++;
+            Point[] p = new Point[c];
+            c = 0;
+            for (Head h = cur; h != null; h = h.next) for (Node n = h.node.next; n != null; n = n.next) { p[c] = new Point(h.x, n.y); c++; }
+            s.p = p;
+
+            // Stat
+            s.xp = x_pivot; s.yp = y_pivot; s.s = scale;
+
+            // Dump
+            FileStream fs = new FileStream(f, FileMode.Create);
+            fs.Write(JsonSerializer.SerializeToUtf8Bytes(s));
+            fs.Close();
         }
 
         public static void Draw(Graphics graphics, Size size)

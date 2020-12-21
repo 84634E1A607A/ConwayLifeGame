@@ -479,5 +479,14 @@ namespace ConwayLifeGame
                 if (fname.EndsWith(".lf")) Map.LoadLF(fname);
             }
         }
+
+        private void FileSave_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "JSON Life File|*.lfs||";
+            saveFileDialog.AddExtension = true;
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                Map.DumpLFS(saveFileDialog.FileName);
+        }
     }
 }
