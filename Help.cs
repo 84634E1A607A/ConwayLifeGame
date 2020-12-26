@@ -10,13 +10,13 @@ namespace ConwayLifeGame
             InitializeComponent();
             HelpContent.Text = "space - start/stop\r\n" +
               "leftclick - select / unselect(Click) / draw(Pen) / erase(Eraser)\r\n" +
-              "rightclick - deploy builtin\r\n" +
-              "b, num - select builtin\r\n" +
+              "rightclick - deploy preset\r\n" +
+              "b, num - select preset\r\n" +
               "d, num - select direction\r\n" +
               "c - Show / hide Control Dialog\r\n" +
               "=(+) - faster\r\n" +
               "-(_) - slower\r\n" +
-              "Options->C / D - Click two points to create/ delete a rectangle region\r\n" +
+              "Edit->C / D - Click two points to create/ delete a rectangle region\r\n" +
               "Find more interesting seeds in ./ seeds";
         }
 

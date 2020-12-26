@@ -3,7 +3,6 @@ using System.Drawing;
 using System.Threading;
 using System.IO;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace ConwayLifeGame
 {
@@ -26,22 +25,22 @@ namespace ConwayLifeGame
             public Head() { x = 0; node = new Node(); next = null; }
         };
         
-        public class Builtin
+        public class Preset
         {
             public Point[] points;
-            public byte size;
             public byte height;
             public byte width;
-            public Builtin() { size = 0; height = 0; width = 0; }
-            public Builtin(Point[] points, byte height, byte width)
+            public string name;
+            public Preset() { height = 0; width = 0; name = ""; }
+            public Preset(Point[] points, byte height, byte width, string name = "")
             {
-                this.points = points; this.size = (byte)points.Length; this.height = height; this.width = width;
+                this.points = points; this.height = height; this.width = width; this.name = name;
             }
         }
         
         private static Head cur = new Head();
         private static Head nxt = new Head();
-        private static Builtin[] builtins;
+        private static Preset[] presets;
         
         public enum AddRegionState
         {
@@ -83,7 +82,20 @@ namespace ConwayLifeGame
         }
         public static MouseInfo mouse_info;
 
-        public static int selected_builtin, selected_direction, x_pivot = 0x08000000, y_pivot = 0x08000000, timer = 100, scale = 10;
+        public enum CopyState
+        {
+            replace,
+            merge
+        }
+        public struct CopyInfo
+        {
+            public bool state;
+            public Point first;
+            public Point second;
+        }
+        public static CopyInfo copy_info;
+
+        public static int selected_preset, selected_direction, x_pivot = 0x08000000, y_pivot = 0x08000000, timer = 100, scale = 10;
         public static bool started;
         
         private static Head Add(int xpos, int ypos, Head acce)
@@ -227,6 +239,20 @@ namespace ConwayLifeGame
             }
         }
 
+        private class DumpStruct
+        {
+            public struct Point
+            {
+                public int X { get; set; }
+                public int Y { get; set; }
+                public Point(int x, int y) { X = x; Y = y; }
+            }
+            public Point[] p { get; set; }
+            public int xp { get; set; }
+            public int yp { get; set; }
+            public int s { get; set; }
+        }
+
         public static void LoadLFS(string f) 
         {
             Program.control.Reset_Click(null, null);
@@ -235,15 +261,7 @@ namespace ConwayLifeGame
             DumpStruct s = JsonSerializer.Deserialize<DumpStruct>(str);
 
             x_pivot = s.xp; y_pivot = s.yp; scale = s.s;
-            foreach (Point p in s.p) { Change(p.X, p.Y); }
-        }
-
-        private class DumpStruct
-        {
-            public Point[] p { get; set; }
-            public int xp { get; set; }
-            public int yp { get; set; }
-            public int s { get; set; }
+            foreach (DumpStruct.Point p in s.p) { Change(p.X + x_pivot, p.Y + y_pivot); }
         }
 
         public static void DumpLFS(string f)
@@ -252,16 +270,16 @@ namespace ConwayLifeGame
 
             DumpStruct s = new DumpStruct();
 
+            // Stat
+            s.xp = x_pivot; s.yp = y_pivot; s.s = scale;
+
             // Points
             int c = 0;
             for (Head h = cur; h != null; h = h.next) for (Node n = h.node.next; n != null; n = n.next) c++;
-            Point[] p = new Point[c];
+            DumpStruct.Point[] p = new DumpStruct.Point[c];
             c = 0;
-            for (Head h = cur; h != null; h = h.next) for (Node n = h.node.next; n != null; n = n.next) { p[c] = new Point(h.x, n.y); c++; }
+            for (Head h = cur; h != null; h = h.next) for (Node n = h.node.next; n != null; n = n.next) { p[c] = new DumpStruct.Point(h.x - x_pivot, n.y - y_pivot); c++; }
             s.p = p;
-
-            // Stat
-            s.xp = x_pivot; s.yp = y_pivot; s.s = scale;
 
             // Dump
             FileStream fs = new FileStream(f, FileMode.Create);
@@ -328,7 +346,7 @@ namespace ConwayLifeGame
         public static void Reset()
         {
             started = false;
-            selected_builtin = selected_direction = 0;
+            selected_preset = selected_direction = 0;
             x_pivot = y_pivot = 0x08000000;
             timer = 100;
             scale = 10;
@@ -340,10 +358,10 @@ namespace ConwayLifeGame
             h.next = null;
         }
 
-        public static void AddBuiltin(int xpos, int ypos)
+        public static void AddPreset(int xpos, int ypos)
         {
-            byte s = builtins[selected_builtin].size, l = (byte)(builtins[selected_builtin].width - 1), h = (byte)(builtins[selected_builtin].height - 1);
-            Point[] cur = builtins[selected_builtin].points;
+            byte s = (byte)presets[selected_preset].points.Length, l = (byte)(presets[selected_preset].width - 1), h = (byte)(presets[selected_preset].height - 1);
+            Point[] cur = presets[selected_preset].points;
             switch (selected_direction)
             {
                 case 0:
@@ -407,40 +425,40 @@ namespace ConwayLifeGame
             }
         }
 
-        public static Builtin GetBulitinInfo(int b = -1)
+        public static Preset GetBulitinInfo(int b = -1)
         {
-            if (b == -1) b = selected_builtin;
-            try { return builtins[b]; }
+            if (b == -1) b = selected_preset;
+            try { return presets[b]; }
             catch (Exception) { return null; }
         }
 
         public static void Initialize()
         {
-            InitBuiltins();
+            InitPresets();
         }
 
-        private static void InitBuiltins()
+        /*private static void InitPresets()
         {
-            builtins = new Builtin[6];
+            presets = new Preset[6];
 
             //{1,1,1},
             //{1,0,0},
             //{0,1,0}
 
-            Point[] builtin0 = new Point[] {
+            Point[] preset0 = new Point[] {
                 new Point(0, 0), new Point(0, 1), new Point(1, 0), new Point(1, 2), new Point(2, 0)
             };
-            builtins[0] = new Builtin(builtin0, 3, 3);
+            presets[0] = new Preset(preset0, 3, 3);
 
             //{0,1,0,0,1},
             //{1,0,0,0,0},
             //{1,0,0,0,1},
             //{1,1,1,1,0}	
 
-            Point[] builtin1 = new Point[] {
+            Point[] preset1 = new Point[] {
                 new Point(0, 1), new Point(0, 2), new Point(0, 3), new Point(1, 0), new Point(1, 3), new Point(2, 3), new Point(3, 3), new Point(4, 0), new Point(4, 2),
             };
-            builtins[1] = new Builtin(builtin1, 4, 5);
+            presets[1] = new Preset(preset1, 4, 5);
 
             //
             //{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0},
@@ -454,7 +472,7 @@ namespace ConwayLifeGame
             //{0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
             //
 
-            Point[] builtin2 = new Point[] {
+            Point[] preset2 = new Point[] {
                 new Point(0, 4), new Point(0, 5), new Point(1, 4), new Point(1, 5),
                 new Point(10, 4), new Point(10, 5), new Point(10, 6), new Point(11, 3), new Point(11, 7), new Point(12, 2), new Point(12, 8), new Point(13, 2), new Point(13, 8),
                 new Point(14, 5), new Point(15, 3), new Point(15, 7), new Point(16, 4), new Point(16, 5), new Point(16, 6), new Point(17, 5),
@@ -462,7 +480,7 @@ namespace ConwayLifeGame
                 new Point(24, 0), new Point(24, 1), new Point(24, 5), new Point(24, 6),
                 new Point(34, 2), new Point(34, 3), new Point(35, 2), new Point(35, 3),
             };
-            builtins[2] = new Builtin(builtin2, 9, 36);
+            presets[2] = new Preset(preset2, 9, 36);
 
             //
             //{0,0,0,0,0,0,1,0,0,0,0,0,0},
@@ -480,24 +498,24 @@ namespace ConwayLifeGame
             //{0,0,0,0,0,0,1,0,0,0,0,0,0}
             //
 
-            Point[] builtin3 = new Point[] {
+            Point[] preset3 = new Point[] {
                 new Point(0, 6), new Point(1, 5), new Point(1, 7), new Point(2, 5), new Point(2, 7), new Point(3, 6),
                 new Point(5, 1), new Point(5, 2), new Point(6, 0), new Point(6, 3), new Point(7, 1), new Point(7, 2),
                 new Point(5, 10), new Point(5, 11), new Point(6, 9), new Point(6, 12), new Point(7, 10), new Point(7, 11),
                 new Point(9, 6), new Point(10, 5), new Point(10, 7), new Point(11, 5), new Point(11, 7), new Point(12, 6),
             };
-            builtins[3] = new Builtin(builtin3, 13, 13);
+            presets[3] = new Preset(preset3, 13, 13);
 
             //{1, 1, 0, 0}
             //{1, 1, 0, 0}
             //{0, 0, 1, 1}
             //{0, 0, 1, 1}
 
-            Point[] builtin4 = new Point[] {
+            Point[] preset4 = new Point[] {
                 new Point(0, 0), new Point(0, 1), new Point(1, 0), new Point(1, 1),
                 new Point(2, 2), new Point(2, 3), new Point(3, 2), new Point(3, 3),
             };
-            builtins[4] = new Builtin(builtin4, 4, 4);
+            presets[4] = new Preset(preset4, 4, 4);
 
             //
             // {0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0}
@@ -515,13 +533,57 @@ namespace ConwayLifeGame
             // {0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0}
             //
 
-            Point[] builtin5 = new Point[] {
+            Point[] preset5 = new Point[] {
                 new Point(0, 2), new Point(0, 3), new Point(0, 4), new Point(2, 0), new Point(3, 0), new Point(4, 0), new Point(5, 2), new Point(5, 3), new Point(5, 4), new Point(2, 5), new Point(3, 5), new Point(4, 5),
                 new Point(0, 8), new Point(0, 9), new Point(0, 10), new Point(2, 7), new Point(3, 7), new Point(4, 7), new Point(5, 8), new Point(5, 9), new Point(5, 10), new Point(2, 12), new Point(3, 12), new Point(4, 12),
                 new Point(7, 2), new Point(7, 3), new Point(7, 4), new Point(8, 0), new Point(9, 0), new Point(10, 0), new Point(12, 2), new Point(12, 3), new Point(12, 4), new Point(8, 5), new Point(9, 5), new Point(10, 5),
                 new Point(7, 8), new Point(7, 9), new Point(7, 10), new Point(8, 7), new Point(9, 7), new Point(10, 7), new Point(12, 8), new Point(12, 9), new Point(12, 10), new Point(8, 12), new Point(9, 12), new Point(10, 12),
             };
-            builtins[5] = new Builtin(builtin5, 13, 13);
+            presets[5] = new Preset(preset5, 13, 13);
+        }*/
+
+        private static void InitPresets()
+        {
+            presets = new Preset[0];
+            string[] files;
+            try
+            {
+                files = Directory.GetFiles("presets");
+            }
+            catch
+            { files = new string[] { "" }; }
+
+            foreach (string fname in files)
+                if (fname.EndsWith(".lfs"))
+                    LoadPreset(fname);
+
+            if (presets.Length == 0)
+            {
+                presets = new Preset[1];
+                presets[0] = new Preset(new Point[] { new Point() }, 1, 1);
+                System.Windows.Forms.MessageBox.Show("No preset found!", "Error");
+            }
         }
+
+        private static void LoadPreset(string f)
+        {
+            string str = File.ReadAllText(f);
+            DumpStruct s = JsonSerializer.Deserialize<DumpStruct>(str);
+            Point[] points = new Point[s.p.Length];
+            int w = 0, h = 0;
+            for (int i = 0; i < s.p.Length; i++)
+            {
+                points[i] = new Point(s.p[i].X, s.p[i].Y);
+                if (s.p[i].X > w) w = s.p[i].X;
+                if (s.p[i].Y > h) h = s.p[i].Y;
+            }
+            Preset preset = new Preset(points, (byte)(h + 1), (byte)(w + 1));
+            Preset[] arr = new Preset[presets.Length + 1];
+            presets.CopyTo(arr, 0);
+            presets = arr;
+            presets[presets.Length - 1] = preset;
+        }
+
+        public static int GetPresetNum() { return presets.Length; }
     }
 }

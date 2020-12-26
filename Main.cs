@@ -18,14 +18,23 @@ namespace ConwayLifeGame
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
             Map.Initialize();
             Program.control = new Control();
-            bkgPen = new Pen(Color.FromArgb(0xFF, 0x88, 0x88, 0x88), 1);
-            bkgBitmap = new Bitmap(MainPictureBox.Width, MainPictureBox.Height);
-            selectPen = new Pen(Color.FromArgb(0xAA, Color.DeepSkyBlue));
-            selectBrush = new SolidBrush(Color.FromArgb(0x55, Color.CadetBlue));
-            mainPicBitmap = new Bitmap(MainPictureBox.Width, MainPictureBox.Height);
-            graphics = Graphics.FromImage(mainPicBitmap);
-            paintThread = new Thread(new ThreadStart(PaintThread));
-            paintThread.Start();
+
+            /*  PaintTools Init  */
+            {
+                paintTools.bkgndPen = new Pen(Color.FromArgb(0xFF, 0x88, 0x88, 0x88), 1);
+                paintTools.bkgndBitmap = new Bitmap(MainPictureBox.Width, MainPictureBox.Height);
+                paintTools.selectRectPen = new Pen(Color.FromArgb(0xAA, Color.DeepSkyBlue));
+                paintTools.selectRectBrush = new SolidBrush(Color.FromArgb(0x55, Color.CadetBlue));
+                paintTools.selectCellPen = new Pen(Color.DarkGreen, 3);
+                paintTools.selectCellPen.DashStyle = System.Drawing.Drawing2D.DashStyle.Custom;
+                paintTools.selectCellPen.DashPattern = new float[] { 1, 1 };
+                paintTools.copyPen = new Pen(Color.DarkGreen, 3);
+                paintTools.copyBrush = new SolidBrush(Color.FromArgb(0x33, Color.ForestGreen));
+                paintTools.mainPicBitmap = new Bitmap(MainPictureBox.Width, MainPictureBox.Height);
+                paintTools.graphics = Graphics.FromImage(paintTools.mainPicBitmap);
+                paintTools.paintThread = new Thread(new ThreadStart(PaintThread));
+                paintTools.paintThread.Start();
+            }
         }
 
         private void HelpAbout_Click(object sender, EventArgs e)
@@ -45,7 +54,7 @@ namespace ConwayLifeGame
             System.Diagnostics.Process.Start(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
         }
 
-        private void OptionsShowWindow_Click(object sender, EventArgs e)
+        private void EditShowWindow_Click(object sender, EventArgs e)
         {
             Program.control.Show();
         }
@@ -55,63 +64,101 @@ namespace ConwayLifeGame
             Application.Exit();
         }
 
-        private Bitmap mainPicBitmap;
-        private Graphics graphics;
-        private Pen bkgPen;
-        private Bitmap bkgBitmap;
-        private Pen selectPen;
-        private SolidBrush selectBrush;
-        private int bitmapScale;
-        private Thread paintThread;
+        private struct PictureBoxPaintTools
+        {
+            public Bitmap mainPicBitmap;
+
+            public Graphics graphics;
+
+            public Pen bkgndPen;
+            public Bitmap bkgndBitmap;
+            public int bkgndBitmapScale;
+
+            public Pen selectRectPen;
+            public SolidBrush selectRectBrush;
+
+            public Pen selectCellPen;
+
+            public Pen copyPen;
+            public SolidBrush copyBrush;
+
+            public Thread paintThread;
+        }
+        PictureBoxPaintTools paintTools;
 
         private void MainPictureBox_Paint()
         {
             Size size = MainPictureBox.Size;
             int mid_x = size.Width / 2, mid_y = size.Height / 2;
 
-            // Bkg Bitmap Init
-            if (bkgBitmap.Size != size || bitmapScale != Map.scale)
+            // bkgnd Bitmap Init
+            if (paintTools.bkgndBitmap.Size != size || paintTools.bkgndBitmapScale != Map.scale)
             {
-                bkgBitmap.Dispose();
-                bkgBitmap = new Bitmap(size.Width, size.Height);
-                Graphics bitmapGraphics = Graphics.FromImage(bkgBitmap);
-                /*  lines in bkgBitmap */
+                paintTools.bkgndBitmap.Dispose();
+                paintTools.bkgndBitmap = new Bitmap(size.Width, size.Height);
+                Graphics bitmapGraphics = Graphics.FromImage(paintTools.bkgndBitmap);
+                /*  lines in bkgndBitmap */
                 for (int i = mid_x % Map.scale; i <= size.Width; i += Map.scale)
-                    bitmapGraphics.DrawLine(bkgPen, i, 0, i, size.Height);
+                    bitmapGraphics.DrawLine(paintTools.bkgndPen, i, 0, i, size.Height);
                 for (int i = mid_y % Map.scale; i <= size.Height; i += Map.scale)
-                    bitmapGraphics.DrawLine(bkgPen, 0, i, size.Width, i);
+                    bitmapGraphics.DrawLine(paintTools.bkgndPen, 0, i, size.Width, i);
                 bitmapGraphics.Dispose();
-                bitmapScale = Map.scale;
+                paintTools.bkgndBitmapScale = Map.scale;
             }
 
             // Main Bitmap Init
-            if (mainPicBitmap.Size != size)
+            if (paintTools.mainPicBitmap.Size != size)
             {
-                graphics.Dispose();
-                mainPicBitmap.Dispose();
-                mainPicBitmap = new Bitmap(size.Width, size.Height);
-                graphics = Graphics.FromImage(mainPicBitmap);
+                paintTools.graphics.Dispose();
+                paintTools.mainPicBitmap.Dispose();
+                paintTools.mainPicBitmap = new Bitmap(size.Width, size.Height);
+                paintTools.graphics = Graphics.FromImage(paintTools.mainPicBitmap);
             }
-            
-            graphics.Clear(BackColor);
+
+            paintTools.graphics.Clear(BackColor);
 
             /*  lines   */
-            graphics.DrawImage(bkgBitmap, 0, 0);
+            paintTools.graphics.DrawImage(paintTools.bkgndBitmap, 0, 0);
+
             /*  blocks  */
-            Map.Draw(graphics, size);
+            Map.Draw(paintTools.graphics, size);
+
             /*  select  */
-            int l = Math.Min(Map.mouse_info.select_first.X, Map.mouse_info.select_second.X); 
-            int r = Math.Max(Map.mouse_info.select_first.X, Map.mouse_info.select_second.X); 
-            int t = Math.Min(Map.mouse_info.select_first.Y, Map.mouse_info.select_second.Y); 
-            int b = Math.Max(Map.mouse_info.select_first.Y, Map.mouse_info.select_second.Y);
-            if (r - l != 0 || b - t != 0)
             {
-                Rectangle rect = new Rectangle(l, t, r - l, b - t);
-                graphics.FillRectangle(selectBrush, rect);
-                graphics.DrawRectangle(selectPen, rect);
+                int l = Math.Min(Map.mouse_info.select_first.X, Map.mouse_info.select_second.X);
+                int r = Math.Max(Map.mouse_info.select_first.X, Map.mouse_info.select_second.X);
+                int t = Math.Min(Map.mouse_info.select_first.Y, Map.mouse_info.select_second.Y);
+                int b = Math.Max(Map.mouse_info.select_first.Y, Map.mouse_info.select_second.Y);
+                /*  select (rect)  */
+                if (r - l != 0 || b - t != 0)
+                {
+                    Rectangle rect = new Rectangle(l, t, r - l, b - t);
+                    paintTools.graphics.FillRectangle(paintTools.selectRectBrush, rect);
+                    paintTools.graphics.DrawRectangle(paintTools.selectRectPen, rect);
+                }
+                /*  select (cell)  */
+                else if (!Map.mouse_info.select_first.IsEmpty)
+                {
+                    int rl = (l - mid_x % Map.scale) / Map.scale * Map.scale + mid_x % Map.scale;
+                    int rt = (t - mid_y % Map.scale) / Map.scale * Map.scale + mid_y % Map.scale;
+                    Rectangle rect = new Rectangle(rl, rt, Map.scale, Map.scale);
+                    paintTools.graphics.DrawRectangle(paintTools.selectCellPen, rect);
+                }
             }
 
-            MainPictureBox.Image = mainPicBitmap;
+            /*  copy  */
+            if (Map.copy_info.state)
+            {
+                int l = Math.Min(Map.copy_info.first.X, Map.copy_info.second.X);
+                int r = Math.Max(Map.copy_info.first.X, Map.copy_info.second.X);
+                int t = Math.Min(Map.copy_info.first.Y, Map.copy_info.second.Y);
+                int b = Math.Max(Map.copy_info.first.Y, Map.copy_info.second.Y);
+                Rectangle rect = new Rectangle((l - Map.x_pivot) * Map.scale + mid_x, (t - Map.y_pivot) * Map.scale + mid_y, (r - l + 1) * Map.scale, (b - t + 1) * Map.scale);
+                paintTools.graphics.DrawRectangle(paintTools.copyPen, rect);
+                paintTools.graphics.FillRectangle(paintTools.copyBrush, rect);
+            }
+
+            MainPictureBox.Image = paintTools.mainPicBitmap;
         }
 
         private void PaintThread()
@@ -178,7 +225,7 @@ namespace ConwayLifeGame
             int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
             int xc = (e.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot;
             int yc = (e.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot;
-            Map.AddBuiltin(xc, yc);
+            Map.AddPreset(xc, yc);
         }
 
         private void MainPictureBox_MouseMove(object sender, MouseEventArgs e)
@@ -309,7 +356,7 @@ namespace ConwayLifeGame
                     }
                 case Keys.C:
                     {
-                        OptionsShowWindow_Click(null, null);
+                        EditShowWindow_Click(null, null);
                         break;
                     }
                 case Keys.Space:
@@ -367,7 +414,7 @@ namespace ConwayLifeGame
                                     case Map.KeyboardInputState.normal: { throw new Exception(); }
                                     case Map.KeyboardInputState.bulitin:
                                         {
-                                            Program.control.BuiltinSelect.Value = e.KeyCode - Keys.D0;
+                                            Program.control.PresetSelect.Value = e.KeyCode - Keys.D0;
                                             break;
                                         }
                                     case Map.KeyboardInputState.direction:
@@ -391,13 +438,13 @@ namespace ConwayLifeGame
 
         private void Main_FormClosed(object sender, FormClosedEventArgs e)
         {
-            graphics.Dispose();
-            bkgPen.Dispose();
-            bkgBitmap.Dispose();
-            mainPicBitmap.Dispose();
+            paintTools.graphics.Dispose();
+            paintTools.bkgndPen.Dispose();
+            paintTools.bkgndBitmap.Dispose();
+            paintTools.mainPicBitmap.Dispose();
         }
 
-        private void OptionsCreateRandom_Click(object sender, EventArgs e)
+        private void EditCreateRandom_Click(object sender, EventArgs e)
         {
             Map.add_region_info.state = Map.AddRegionState.random;
             if (Map.mouse_info.select_first.IsEmpty)
@@ -420,7 +467,7 @@ namespace ConwayLifeGame
             }
         }
 
-        private void OptionsCreateSolid_Click(object sender, EventArgs e)
+        private void EditCreateSolid_Click(object sender, EventArgs e)
         {
             Map.add_region_info.state = Map.AddRegionState.insert;
             if (Map.mouse_info.select_first.IsEmpty)
@@ -443,7 +490,7 @@ namespace ConwayLifeGame
             }
         }
 
-        private void OptionsDeleteRegion_Click(object sender, EventArgs e)
+        private void EditDeleteRegion_Click(object sender, EventArgs e)
         {
             Map.add_region_info.state = Map.AddRegionState.delete;
             if (Map.mouse_info.select_first.IsEmpty)
@@ -487,6 +534,25 @@ namespace ConwayLifeGame
             saveFileDialog.AddExtension = true;
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
                 Map.DumpLFS(saveFileDialog.FileName);
+        }
+
+        private void EditCopy_Click(object sender, EventArgs e)
+        {
+            if (Map.mouse_info.select_first.IsEmpty && Map.mouse_info.select_second.IsEmpty) return;
+            int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
+            int xc = (int)((Map.mouse_info.select_first.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot);
+            int yc = (int)((Map.mouse_info.select_first.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot);
+            Map.copy_info.first = new Point(xc, yc);
+            xc = (int)((Map.mouse_info.select_second.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot);
+            yc = (int)((Map.mouse_info.select_second.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot);
+            Map.copy_info.second = new Point(xc, yc);
+            Map.copy_info.state = true;
+            Map.mouse_info.select_first = Map.mouse_info.select_second = new Point();
+        }
+
+        private void EditPaste_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

@@ -30,36 +30,45 @@ namespace ConwayLifeGame
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.Windows.Forms.ToolStripSeparator EditSeparator1;
             this.MainFormMenu = new System.Windows.Forms.MenuStrip();
             this.MainMenuFile = new System.Windows.Forms.ToolStripMenuItem();
             this.FileNewWindow = new System.Windows.Forms.ToolStripMenuItem();
             this.FileOpen = new System.Windows.Forms.ToolStripMenuItem();
             this.FileSave = new System.Windows.Forms.ToolStripMenuItem();
             this.FileExit = new System.Windows.Forms.ToolStripMenuItem();
-            this.MainMenuOptions = new System.Windows.Forms.ToolStripMenuItem();
-            this.OptionsShowWindow = new System.Windows.Forms.ToolStripMenuItem();
-            this.OptionsCreateSolid = new System.Windows.Forms.ToolStripMenuItem();
-            this.OptionsCreateRandom = new System.Windows.Forms.ToolStripMenuItem();
-            this.OptionsDeleteRegion = new System.Windows.Forms.ToolStripMenuItem();
+            this.MainMenuEdit = new System.Windows.Forms.ToolStripMenuItem();
+            this.EditShowWindow = new System.Windows.Forms.ToolStripMenuItem();
+            this.EditCreateSolid = new System.Windows.Forms.ToolStripMenuItem();
+            this.EditCreateRandom = new System.Windows.Forms.ToolStripMenuItem();
+            this.EditDeleteRegion = new System.Windows.Forms.ToolStripMenuItem();
+            this.EditCopy = new System.Windows.Forms.ToolStripMenuItem();
+            this.EditPaste = new System.Windows.Forms.ToolStripMenuItem();
             this.MainMenuHelp = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpAbout = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpHelp = new System.Windows.Forms.ToolStripMenuItem();
             this.MainPictureBox = new System.Windows.Forms.PictureBox();
             this.ClacTimer = new System.Windows.Forms.Timer(this.components);
+            EditSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.MainFormMenu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.MainPictureBox)).BeginInit();
             this.SuspendLayout();
+            // 
+            // EditSeparator1
+            // 
+            EditSeparator1.Name = "EditSeparator1";
+            EditSeparator1.Size = new System.Drawing.Size(193, 6);
             // 
             // MainFormMenu
             // 
             this.MainFormMenu.AllowDrop = true;
             this.MainFormMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.MainMenuFile,
-            this.MainMenuOptions,
+            this.MainMenuEdit,
             this.MainMenuHelp});
             this.MainFormMenu.Location = new System.Drawing.Point(0, 0);
             this.MainFormMenu.Name = "MainFormMenu";
-            this.MainFormMenu.Size = new System.Drawing.Size(711, 25);
+            this.MainFormMenu.Size = new System.Drawing.Size(711, 24);
             this.MainFormMenu.TabIndex = 0;
             this.MainFormMenu.Text = "Menu";
             // 
@@ -72,7 +81,7 @@ namespace ConwayLifeGame
             this.FileSave,
             this.FileExit});
             this.MainMenuFile.Name = "MainMenuFile";
-            this.MainMenuFile.Size = new System.Drawing.Size(39, 21);
+            this.MainMenuFile.Size = new System.Drawing.Size(37, 20);
             this.MainMenuFile.Text = "&File";
             // 
             // FileNewWindow
@@ -80,7 +89,7 @@ namespace ConwayLifeGame
             this.FileNewWindow.Name = "FileNewWindow";
             this.FileNewWindow.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
             this.FileNewWindow.ShowShortcutKeys = false;
-            this.FileNewWindow.Size = new System.Drawing.Size(145, 22);
+            this.FileNewWindow.Size = new System.Drawing.Size(138, 22);
             this.FileNewWindow.Text = "&New Window";
             this.FileNewWindow.Click += new System.EventHandler(this.FileNewWindow_Click);
             // 
@@ -89,7 +98,7 @@ namespace ConwayLifeGame
             this.FileOpen.Name = "FileOpen";
             this.FileOpen.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
             this.FileOpen.ShowShortcutKeys = false;
-            this.FileOpen.Size = new System.Drawing.Size(145, 22);
+            this.FileOpen.Size = new System.Drawing.Size(138, 22);
             this.FileOpen.Text = "&Open";
             this.FileOpen.Click += new System.EventHandler(this.FileOpen_Click);
             // 
@@ -98,7 +107,7 @@ namespace ConwayLifeGame
             this.FileSave.Name = "FileSave";
             this.FileSave.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
             this.FileSave.ShowShortcutKeys = false;
-            this.FileSave.Size = new System.Drawing.Size(145, 22);
+            this.FileSave.Size = new System.Drawing.Size(138, 22);
             this.FileSave.Text = "&Save";
             this.FileSave.Click += new System.EventHandler(this.FileSave_Click);
             // 
@@ -107,49 +116,69 @@ namespace ConwayLifeGame
             this.FileExit.Name = "FileExit";
             this.FileExit.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F4)));
             this.FileExit.ShowShortcutKeys = false;
-            this.FileExit.Size = new System.Drawing.Size(145, 22);
+            this.FileExit.Size = new System.Drawing.Size(138, 22);
             this.FileExit.Text = "E&xit";
             this.FileExit.Click += new System.EventHandler(this.FileExit_Click);
             // 
-            // MainMenuOptions
+            // MainMenuEdit
             // 
-            this.MainMenuOptions.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.OptionsShowWindow,
-            this.OptionsCreateSolid,
-            this.OptionsCreateRandom,
-            this.OptionsDeleteRegion});
-            this.MainMenuOptions.Name = "MainMenuOptions";
-            this.MainMenuOptions.Size = new System.Drawing.Size(66, 21);
-            this.MainMenuOptions.Text = "&Options";
+            this.MainMenuEdit.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.EditShowWindow,
+            this.EditCreateSolid,
+            this.EditCreateRandom,
+            this.EditDeleteRegion,
+            EditSeparator1,
+            this.EditCopy,
+            this.EditPaste});
+            this.MainMenuEdit.Name = "MainMenuEdit";
+            this.MainMenuEdit.Size = new System.Drawing.Size(39, 20);
+            this.MainMenuEdit.Text = "&Edit";
             // 
-            // OptionsShowWindow
+            // EditShowWindow
             // 
-            this.OptionsShowWindow.Name = "OptionsShowWindow";
-            this.OptionsShowWindow.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.P)));
-            this.OptionsShowWindow.Size = new System.Drawing.Size(249, 22);
-            this.OptionsShowWindow.Text = "&Show Control Window";
-            this.OptionsShowWindow.Click += new System.EventHandler(this.OptionsShowWindow_Click);
+            this.EditShowWindow.Name = "EditShowWindow";
+            this.EditShowWindow.Size = new System.Drawing.Size(196, 22);
+            this.EditShowWindow.Text = "&Show Control Window";
+            this.EditShowWindow.Click += new System.EventHandler(this.EditShowWindow_Click);
             // 
-            // OptionsCreateSolid
+            // EditCreateSolid
             // 
-            this.OptionsCreateSolid.Name = "OptionsCreateSolid";
-            this.OptionsCreateSolid.Size = new System.Drawing.Size(249, 22);
-            this.OptionsCreateSolid.Text = "&Create Solid Region";
-            this.OptionsCreateSolid.Click += new System.EventHandler(this.OptionsCreateSolid_Click);
+            this.EditCreateSolid.Name = "EditCreateSolid";
+            this.EditCreateSolid.Size = new System.Drawing.Size(196, 22);
+            this.EditCreateSolid.Text = "Create &Solid Region";
+            this.EditCreateSolid.Click += new System.EventHandler(this.EditCreateSolid_Click);
             // 
-            // OptionsCreateRandom
+            // EditCreateRandom
             // 
-            this.OptionsCreateRandom.Name = "OptionsCreateRandom";
-            this.OptionsCreateRandom.Size = new System.Drawing.Size(249, 22);
-            this.OptionsCreateRandom.Text = "Create &Random Region";
-            this.OptionsCreateRandom.Click += new System.EventHandler(this.OptionsCreateRandom_Click);
+            this.EditCreateRandom.Name = "EditCreateRandom";
+            this.EditCreateRandom.Size = new System.Drawing.Size(196, 22);
+            this.EditCreateRandom.Text = "Create &Random Region";
+            this.EditCreateRandom.Click += new System.EventHandler(this.EditCreateRandom_Click);
             // 
-            // OptionsDeleteRegion
+            // EditDeleteRegion
             // 
-            this.OptionsDeleteRegion.Name = "OptionsDeleteRegion";
-            this.OptionsDeleteRegion.Size = new System.Drawing.Size(249, 22);
-            this.OptionsDeleteRegion.Text = "&Delete Solid Region";
-            this.OptionsDeleteRegion.Click += new System.EventHandler(this.OptionsDeleteRegion_Click);
+            this.EditDeleteRegion.Name = "EditDeleteRegion";
+            this.EditDeleteRegion.Size = new System.Drawing.Size(196, 22);
+            this.EditDeleteRegion.Text = "&Delete Solid Region";
+            this.EditDeleteRegion.Click += new System.EventHandler(this.EditDeleteRegion_Click);
+            // 
+            // EditCopy
+            // 
+            this.EditCopy.Name = "EditCopy";
+            this.EditCopy.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C)));
+            this.EditCopy.ShowShortcutKeys = false;
+            this.EditCopy.Size = new System.Drawing.Size(196, 22);
+            this.EditCopy.Text = "&Copy";
+            this.EditCopy.Click += new System.EventHandler(this.EditCopy_Click);
+            // 
+            // EditPaste
+            // 
+            this.EditPaste.Name = "EditPaste";
+            this.EditPaste.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.V)));
+            this.EditPaste.ShowShortcutKeys = false;
+            this.EditPaste.Size = new System.Drawing.Size(196, 22);
+            this.EditPaste.Text = "&Paste";
+            this.EditPaste.Click += new System.EventHandler(this.EditPaste_Click);
             // 
             // MainMenuHelp
             // 
@@ -157,7 +186,7 @@ namespace ConwayLifeGame
             this.HelpAbout,
             this.HelpHelp});
             this.MainMenuHelp.Name = "MainMenuHelp";
-            this.MainMenuHelp.Size = new System.Drawing.Size(47, 21);
+            this.MainMenuHelp.Size = new System.Drawing.Size(44, 20);
             this.MainMenuHelp.Text = "&Help";
             // 
             // HelpAbout
@@ -165,7 +194,7 @@ namespace ConwayLifeGame
             this.HelpAbout.Name = "HelpAbout";
             this.HelpAbout.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
             | System.Windows.Forms.Keys.H)));
-            this.HelpAbout.Size = new System.Drawing.Size(191, 22);
+            this.HelpAbout.Size = new System.Drawing.Size(182, 22);
             this.HelpAbout.Text = "&About";
             this.HelpAbout.Click += new System.EventHandler(this.HelpAbout_Click);
             // 
@@ -173,7 +202,7 @@ namespace ConwayLifeGame
             // 
             this.HelpHelp.Name = "HelpHelp";
             this.HelpHelp.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.H)));
-            this.HelpHelp.Size = new System.Drawing.Size(191, 22);
+            this.HelpHelp.Size = new System.Drawing.Size(182, 22);
             this.HelpHelp.Text = "&Help";
             this.HelpHelp.Click += new System.EventHandler(this.HelpHelp_Click);
             // 
@@ -182,9 +211,9 @@ namespace ConwayLifeGame
             this.MainPictureBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.MainPictureBox.Location = new System.Drawing.Point(0, 28);
+            this.MainPictureBox.Location = new System.Drawing.Point(0, 25);
             this.MainPictureBox.Name = "MainPictureBox";
-            this.MainPictureBox.Size = new System.Drawing.Size(711, 393);
+            this.MainPictureBox.Size = new System.Drawing.Size(711, 347);
             this.MainPictureBox.TabIndex = 1;
             this.MainPictureBox.TabStop = false;
             this.MainPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseDown);
@@ -198,9 +227,9 @@ namespace ConwayLifeGame
             // 
             // Main
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(711, 420);
+            this.ClientSize = new System.Drawing.Size(711, 371);
             this.Controls.Add(this.MainPictureBox);
             this.Controls.Add(this.MainFormMenu);
             this.MainMenuStrip = this.MainFormMenu;
@@ -224,16 +253,18 @@ namespace ConwayLifeGame
         private System.Windows.Forms.ToolStripMenuItem FileOpen;
         private System.Windows.Forms.ToolStripMenuItem FileSave;
         private System.Windows.Forms.ToolStripMenuItem FileExit;
-        private System.Windows.Forms.ToolStripMenuItem MainMenuOptions;
-        private System.Windows.Forms.ToolStripMenuItem OptionsShowWindow;
-        private System.Windows.Forms.ToolStripMenuItem OptionsCreateSolid;
-        private System.Windows.Forms.ToolStripMenuItem OptionsCreateRandom;
-        private System.Windows.Forms.ToolStripMenuItem OptionsDeleteRegion;
+        private System.Windows.Forms.ToolStripMenuItem MainMenuEdit;
+        private System.Windows.Forms.ToolStripMenuItem EditShowWindow;
+        private System.Windows.Forms.ToolStripMenuItem EditCreateSolid;
+        private System.Windows.Forms.ToolStripMenuItem EditCreateRandom;
+        private System.Windows.Forms.ToolStripMenuItem EditDeleteRegion;
         private System.Windows.Forms.ToolStripMenuItem MainMenuHelp;
         private System.Windows.Forms.ToolStripMenuItem HelpAbout;
         private System.Windows.Forms.ToolStripMenuItem HelpHelp;
         public System.Windows.Forms.PictureBox MainPictureBox;
         public System.Windows.Forms.Timer ClacTimer;
+        private System.Windows.Forms.ToolStripMenuItem EditCopy;
+        private System.Windows.Forms.ToolStripMenuItem EditPaste;
     }
 }
 

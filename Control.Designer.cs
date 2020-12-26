@@ -34,7 +34,7 @@ namespace ConwayLifeGame
             this.label3 = new System.Windows.Forms.Label();
             this.DirectionSelect = new System.Windows.Forms.NumericUpDown();
             this.label2 = new System.Windows.Forms.Label();
-            this.BuiltinSelect = new System.Windows.Forms.NumericUpDown();
+            this.PresetSelect = new System.Windows.Forms.NumericUpDown();
             this.label1 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.Reset = new System.Windows.Forms.Button();
@@ -56,7 +56,7 @@ namespace ConwayLifeGame
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.PreviewPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.DirectionSelect)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.BuiltinSelect)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.PresetSelect)).BeginInit();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.Timer)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.MapScale)).BeginInit();
@@ -71,14 +71,14 @@ namespace ConwayLifeGame
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.DirectionSelect);
             this.groupBox1.Controls.Add(this.label2);
-            this.groupBox1.Controls.Add(this.BuiltinSelect);
+            this.groupBox1.Controls.Add(this.PresetSelect);
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Location = new System.Drawing.Point(13, 13);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(203, 144);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Builtin controls";
+            this.groupBox1.Text = "Preset";
             // 
             // PreviewPictureBox
             // 
@@ -119,27 +119,27 @@ namespace ConwayLifeGame
             this.label2.TabIndex = 2;
             this.label2.Text = "Direction";
             // 
-            // BuiltinSelect
+            // PresetSelect
             // 
-            this.BuiltinSelect.Location = new System.Drawing.Point(53, 19);
-            this.BuiltinSelect.Maximum = new decimal(new int[] {
+            this.PresetSelect.Location = new System.Drawing.Point(53, 19);
+            this.PresetSelect.Maximum = new decimal(new int[] {
             5,
             0,
             0,
             0});
-            this.BuiltinSelect.Name = "BuiltinSelect";
-            this.BuiltinSelect.Size = new System.Drawing.Size(39, 23);
-            this.BuiltinSelect.TabIndex = 0;
-            this.BuiltinSelect.ValueChanged += new System.EventHandler(this.BuiltinSelect_ValueChanged);
+            this.PresetSelect.Name = "PresetSelect";
+            this.PresetSelect.Size = new System.Drawing.Size(39, 23);
+            this.PresetSelect.TabIndex = 0;
+            this.PresetSelect.ValueChanged += new System.EventHandler(this.PresetSelect_ValueChanged);
             // 
             // label1
             // 
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(6, 21);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(41, 15);
+            this.label1.Size = new System.Drawing.Size(39, 15);
             this.label1.TabIndex = 0;
-            this.label1.Text = "Builtin";
+            this.label1.Text = "Preset";
             // 
             // groupBox2
             // 
@@ -158,7 +158,7 @@ namespace ConwayLifeGame
             this.groupBox2.Size = new System.Drawing.Size(203, 144);
             this.groupBox2.TabIndex = 1;
             this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Map controls";
+            this.groupBox2.Text = "Map";
             // 
             // Reset
             // 
@@ -322,7 +322,7 @@ namespace ConwayLifeGame
             this.groupBox3.Size = new System.Drawing.Size(105, 144);
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "Mouse controls";
+            this.groupBox3.Text = "Mouse";
             // 
             // MouseStateSelect
             // 
@@ -396,13 +396,13 @@ namespace ConwayLifeGame
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "Control";
-            this.Text = "Control PictureBox";
+            this.Text = "Control Panel";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Control_FormClosing);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.PreviewPictureBox)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.DirectionSelect)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.BuiltinSelect)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.PresetSelect)).EndInit();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.Timer)).EndInit();
@@ -434,7 +434,7 @@ namespace ConwayLifeGame
         public System.Windows.Forms.NumericUpDown XPivot;
         public System.Windows.Forms.NumericUpDown YPivot;
         public System.Windows.Forms.NumericUpDown Timer;
-        public System.Windows.Forms.NumericUpDown BuiltinSelect;
+        public System.Windows.Forms.NumericUpDown PresetSelect;
         public System.Windows.Forms.NumericUpDown DirectionSelect;
         public System.Windows.Forms.RadioButton MouseStateEraser;
         public System.Windows.Forms.RadioButton MouseStatePen;

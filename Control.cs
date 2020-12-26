@@ -20,21 +20,22 @@ namespace ConwayLifeGame
             brush = new SolidBrush(Color.Black);
             rbrush = new SolidBrush(Color.Red);
             graphics = Graphics.FromImage(previewBitmap);
+            PresetSelect.Maximum = Map.GetPresetNum() - 1;
             PreviewPictureBox_Paint();
             MouseStateClick.Checked = true;
         }
 
         private void PreviewPictureBox_Paint()
         {
-            Map.Builtin builtin_info = Map.GetBulitinInfo();
+            Map.Preset preset_info = Map.GetBulitinInfo();
             graphics.Clear(BackColor);
-            int x_scale = size.Width / builtin_info.width;
-            int y_scale = size.Height / builtin_info.height;
+            int x_scale = size.Width / preset_info.width;
+            int y_scale = size.Height / preset_info.height;
             int scale = x_scale < y_scale ? x_scale : y_scale;
-            int x_start = (size.Width - builtin_info.width * scale) / 2;
-            int y_start = (size.Height - builtin_info.height * scale) / 2;
+            int x_start = (size.Width - preset_info.width * scale) / 2;
+            int y_start = (size.Height - preset_info.height * scale) / 2;
             graphics.TranslateTransform(x_start, y_start);
-            foreach (Point point in builtin_info.points)
+            foreach (Point point in preset_info.points)
             {
                 Rectangle r = new Rectangle(scale * point.X, scale * point.Y, scale, scale);
                 graphics.FillRectangle(brush, r);
@@ -46,6 +47,7 @@ namespace ConwayLifeGame
 
         public void StartStop_Click(object sender, EventArgs e)
         {
+            if (Map.mouse_info.state == Map.MouseState.select && Map.started == false) return;
             Map.started = !Map.started;
             if (Map.started) Program.main.ClacTimer.Start();
             else Program.main.ClacTimer.Stop();
@@ -65,15 +67,15 @@ namespace ConwayLifeGame
             // Control Reset
             XPivot.Value = Map.x_pivot;
             YPivot.Value = Map.y_pivot;
-            BuiltinSelect.Value = Map.selected_builtin;
+            PresetSelect.Value = Map.selected_preset;
             DirectionSelect.Value = Map.selected_direction;
             Timer.Value = Map.timer;
             MapScale.Value = Map.scale;
         }
 
-        private void BuiltinSelect_ValueChanged(object sender, EventArgs e)
+        private void PresetSelect_ValueChanged(object sender, EventArgs e)
         {
-            Map.selected_builtin = (byte)BuiltinSelect.Value;
+            Map.selected_preset = (byte)PresetSelect.Value;
             PreviewPictureBox_Paint();
         }
 
@@ -84,16 +86,19 @@ namespace ConwayLifeGame
 
         private void XPivot_ValueChanged(object sender, EventArgs e)
         {
+            Map.mouse_info.select_first = Map.mouse_info.select_second = new Point();
             Map.x_pivot = (int)XPivot.Value;
         }
 
         private void YPivot_ValueChanged(object sender, EventArgs e)
         {
+            Map.mouse_info.select_first = Map.mouse_info.select_second = new Point();
             Map.y_pivot = (int)YPivot.Value;
         }
 
         private void MapScale_ValueChanged(object sender, EventArgs e)
         {
+            Map.mouse_info.select_first = Map.mouse_info.select_second = new Point();
             Map.scale = (int)MapScale.Value;
         }
 
@@ -109,7 +114,7 @@ namespace ConwayLifeGame
             else if (MouseStatePen.Checked) Map.mouse_info.state = Map.MouseState.pen;
             else if (MouseStateEraser.Checked) Map.mouse_info.state = Map.MouseState.eraser;
             else if (MouseStateDrag.Checked) Map.mouse_info.state = Map.MouseState.drag;
-            else if (MouseStateSelect.Checked) Map.mouse_info.state = Map.MouseState.select;
+            else if (MouseStateSelect.Checked) { Map.mouse_info.state = Map.MouseState.select; StartStop_Click(null, null); }
             if (!MouseStateSelect.Checked) Map.mouse_info.select_first = Map.mouse_info.select_second = new Point();
         }
     }
