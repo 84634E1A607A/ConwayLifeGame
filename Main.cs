@@ -25,9 +25,11 @@ namespace ConwayLifeGame
                 paintTools.bkgndBitmap = new Bitmap(MainPictureBox.Width, MainPictureBox.Height);
                 paintTools.selectRectPen = new Pen(Color.FromArgb(0xAA, Color.DeepSkyBlue));
                 paintTools.selectRectBrush = new SolidBrush(Color.FromArgb(0x55, Color.CadetBlue));
-                paintTools.selectCellPen = new Pen(Color.DarkGreen, 3);
-                paintTools.selectCellPen.DashStyle = System.Drawing.Drawing2D.DashStyle.Custom;
-                paintTools.selectCellPen.DashPattern = new float[] { 1, 1 };
+                paintTools.selectCellPen = new Pen(Color.DarkGreen, 3)
+                {
+                    DashStyle = System.Drawing.Drawing2D.DashStyle.Custom,
+                    DashPattern = new float[] { 1, 1 }
+                };
                 paintTools.copyPen = new Pen(Color.DarkGreen, 3);
                 paintTools.copyBrush = new SolidBrush(Color.FromArgb(0x33, Color.ForestGreen));
                 paintTools.mainPicBitmap = new Bitmap(MainPictureBox.Width, MainPictureBox.Height);
@@ -515,10 +517,12 @@ namespace ConwayLifeGame
 
         private void FileOpen_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Multiselect = false;
-            openFileDialog.Filter = "JSON Life File|*.lfs|Life File|*.lf||";
-            openFileDialog.DefaultExt = ".lfs";
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Multiselect = false,
+                Filter = "JSON Life File|*.lfs|Life File|*.lf||",
+                DefaultExt = ".lfs"
+            };
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 string fname = openFileDialog.FileName;
@@ -529,9 +533,11 @@ namespace ConwayLifeGame
 
         private void FileSave_Click(object sender, EventArgs e)
         {
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "JSON Life File|*.lfs||";
-            saveFileDialog.AddExtension = true;
+            SaveFileDialog saveFileDialog = new SaveFileDialog
+            {
+                Filter = "JSON Life File|*.lfs||",
+                AddExtension = true
+            };
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
                 Map.DumpLFS(saveFileDialog.FileName);
         }
@@ -552,7 +558,13 @@ namespace ConwayLifeGame
 
         private void EditPaste_Click(object sender, EventArgs e)
         {
-
+            if (!Map.copy_info.state) return;
+            if (Map.mouse_info.select_first != Map.mouse_info.select_second) return; 
+            int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
+            int xc = (int)((Map.mouse_info.select_first.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot);
+            int yc = (int)((Map.mouse_info.select_first.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot);
+            Map.Paste(xc, yc);
+            Map.copy_info.state = false;
         }
     }
 }

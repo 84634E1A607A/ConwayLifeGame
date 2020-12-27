@@ -38,8 +38,8 @@ namespace ConwayLifeGame
             }
         }
         
-        private static Head cur = new Head();
-        private static Head nxt = new Head();
+        private readonly static Head cur = new Head();
+        private readonly static Head nxt = new Head();
         private static Preset[] presets;
         
         public enum AddRegionState
@@ -85,13 +85,15 @@ namespace ConwayLifeGame
         public enum CopyState
         {
             replace,
-            merge
+            merge,
+            cancel
         }
         public struct CopyInfo
         {
             public bool state;
             public Point first;
             public Point second;
+            public CopyState copyState;
         }
         public static CopyInfo copy_info;
 
@@ -172,7 +174,7 @@ namespace ConwayLifeGame
 
         public static void Calc()
         {
-            Head px = cur.next, pacce = null, ptmp = null;
+            Head px = cur.next, pacce = null, ptmp;
             while (px != null)
             {
                 Node py = px.node.next;
@@ -247,10 +249,10 @@ namespace ConwayLifeGame
                 public int Y { get; set; }
                 public Point(int x, int y) { X = x; Y = y; }
             }
-            public Point[] p { get; set; }
-            public int xp { get; set; }
-            public int yp { get; set; }
-            public int s { get; set; }
+            public Point[] P { get; set; }
+            public int Xp { get; set; }
+            public int Yp { get; set; }
+            public int S { get; set; }
         }
 
         public static void LoadLFS(string f) 
@@ -260,18 +262,21 @@ namespace ConwayLifeGame
             string str = File.ReadAllText(f);
             DumpStruct s = JsonSerializer.Deserialize<DumpStruct>(str);
 
-            x_pivot = s.xp; y_pivot = s.yp; scale = s.s;
-            foreach (DumpStruct.Point p in s.p) { Change(p.X + x_pivot, p.Y + y_pivot); }
+            x_pivot = s.Xp; y_pivot = s.Yp; scale = s.S;
+            foreach (DumpStruct.Point p in s.P) { Change(p.X + x_pivot, p.Y + y_pivot); }
         }
 
         public static void DumpLFS(string f)
         {
             if (started) Program.control.StartStop_Click(null, null);
 
-            DumpStruct s = new DumpStruct();
-
-            // Stat
-            s.xp = x_pivot; s.yp = y_pivot; s.s = scale;
+            DumpStruct s = new DumpStruct
+            {
+                // Stat
+                Xp = x_pivot,
+                Yp = y_pivot,
+                S = scale
+            };
 
             // Points
             int c = 0;
@@ -279,7 +284,7 @@ namespace ConwayLifeGame
             DumpStruct.Point[] p = new DumpStruct.Point[c];
             c = 0;
             for (Head h = cur; h != null; h = h.next) for (Node n = h.node.next; n != null; n = n.next) { p[c] = new DumpStruct.Point(h.x - x_pivot, n.y - y_pivot); c++; }
-            s.p = p;
+            s.P = p;
 
             // Dump
             FileStream fs = new FileStream(f, FileMode.Create);
@@ -336,12 +341,12 @@ namespace ConwayLifeGame
             p.next = pd.next;
         }
 
-        private static void Del(Head h)
+        /*private static void Del(Head h)
         {
             Head pd = h.next;
             pd.node = null;
             h.next = pd.next;
-        }
+        }*/
 
         public static void Reset()
         {
@@ -393,7 +398,7 @@ namespace ConwayLifeGame
 
         public static void AddDeleteRegion(Point p1, Point p2)
         {
-            int left = p1.X, top = p1.Y, right = p2.X, bottom = p2.Y;
+            int left = Math.Min(p1.X, p2.X), top = Math.Min(p1.Y, p2.Y), right = Math.Max(p1.X, p2.X), bottom = Math.Max(p1.Y, p2.Y);
             Head acce = null;
             switch (add_region_info.state)
             {
@@ -555,7 +560,13 @@ namespace ConwayLifeGame
 
             foreach (string fname in files)
                 if (fname.EndsWith(".lfs"))
-                    LoadPreset(fname);
+                    try
+                    {
+                        LoadPreset(fname);
+                    } catch
+                    {
+                        System.Windows.Forms.MessageBox.Show("Bad preset file: " + fname, "Error");
+                    }
 
             if (presets.Length == 0)
             {
@@ -569,21 +580,83 @@ namespace ConwayLifeGame
         {
             string str = File.ReadAllText(f);
             DumpStruct s = JsonSerializer.Deserialize<DumpStruct>(str);
-            Point[] points = new Point[s.p.Length];
+            Point[] points = new Point[s.P.Length];
             int w = 0, h = 0;
-            for (int i = 0; i < s.p.Length; i++)
+            for (int i = 0; i < s.P.Length; i++)
             {
-                points[i] = new Point(s.p[i].X, s.p[i].Y);
-                if (s.p[i].X > w) w = s.p[i].X;
-                if (s.p[i].Y > h) h = s.p[i].Y;
+                points[i] = new Point(s.P[i].X, s.P[i].Y);
+                if (s.P[i].X > w) w = s.P[i].X;
+                if (s.P[i].Y > h) h = s.P[i].Y;
             }
             Preset preset = new Preset(points, (byte)(h + 1), (byte)(w + 1));
             Preset[] arr = new Preset[presets.Length + 1];
             presets.CopyTo(arr, 0);
             presets = arr;
-            presets[presets.Length - 1] = preset;
+            presets[^1] = preset;
         }
 
         public static int GetPresetNum() { return presets.Length; }
+
+        public static void Paste(int x, int y)
+        {
+            int left = Math.Min(copy_info.first.X, copy_info.second.X), top = Math.Min(copy_info.first.Y, copy_info.second.Y),
+                right = Math.Max(copy_info.first.X, copy_info.second.X), bottom = Math.Max(copy_info.first.Y, copy_info.second.Y),
+                width = right - left + 1, height = bottom - top + 1;
+            Point[] points = new Point[width * height];
+            Head px = cur.next; int pos = 0;
+            while (px != null && px.x < left) px = px.next;
+            while (px != null && px.x <= right)
+            {
+                Node py = px.node;
+                while (py != null && py.y < top) py = py.next;
+                while (py != null && py.y <= bottom)
+                {
+                    points[pos++] = new Point(px.x - left, py.y - top);
+                    py = py.next;
+                }
+                px = px.next;
+            }
+
+            bool conflict = false;
+            px = cur.next;
+            while (px != null && px.x < x) px = px.next;
+            while (px != null && px.x <= x + width)
+            {
+                Node py = px.node;
+                while (py != null && py.y < y) py = py.next;
+                if (py != null && py.y <= y + height) { conflict = true; break; }
+                px = px.next;
+            }
+
+            if (conflict)
+            {
+                new CopyConflict().ShowDialog();
+                switch (copy_info.copyState)
+                {
+                    case CopyState.cancel:
+                        {
+                            return;
+                        }
+                    case CopyState.merge:
+                        {
+                            break;
+                        }
+                    case CopyState.replace:
+                        {
+                            px = cur.next;
+                            while (px != null && px.x < x) px = px.next;
+                            while (px != null && px.x <= x + width)
+                            {
+                                Node py = px.node;
+                                while (py.next != null && py.next.y < y) py = py.next;
+                                while (py.next != null && py.next.y <= y + height) Del(py);
+                                px = px.next;
+                            }
+                            break;
+                        }
+                }
+            }
+            for (int i = 0; i < pos; i++) Change(x + points[i].X, y + points[i].Y, 1);
+        }
     }
 }
