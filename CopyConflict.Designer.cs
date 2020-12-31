@@ -32,7 +32,7 @@ namespace ConwayLifeGame
             this.label1 = new System.Windows.Forms.Label();
             this.ReplaceButton = new System.Windows.Forms.Button();
             this.MergeButton = new System.Windows.Forms.Button();
-            this.CancelButton = new System.Windows.Forms.Button();
+            this.cancelButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label1
@@ -66,20 +66,20 @@ namespace ConwayLifeGame
             // 
             // CancelButton
             // 
-            this.CancelButton.Location = new System.Drawing.Point(253, 32);
-            this.CancelButton.Name = "CancelButton";
-            this.CancelButton.Size = new System.Drawing.Size(75, 23);
-            this.CancelButton.TabIndex = 3;
-            this.CancelButton.Text = "Cancel";
-            this.CancelButton.UseVisualStyleBackColor = true;
-            this.CancelButton.Click += new System.EventHandler(this.CancelButton_Click);
+            this.cancelButton.Location = new System.Drawing.Point(253, 32);
+            this.cancelButton.Name = "CancelButton";
+            this.cancelButton.Size = new System.Drawing.Size(75, 23);
+            this.cancelButton.TabIndex = 3;
+            this.cancelButton.Text = "Cancel";
+            this.cancelButton.UseVisualStyleBackColor = true;
+            this.cancelButton.Click += new System.EventHandler(this.CancelButton_Click);
             // 
             // CopyConflict
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(342, 67);
-            this.Controls.Add(this.CancelButton);
+            this.Controls.Add(this.cancelButton);
             this.Controls.Add(this.MergeButton);
             this.Controls.Add(this.ReplaceButton);
             this.Controls.Add(this.label1);
@@ -96,6 +96,6 @@ namespace ConwayLifeGame
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button ReplaceButton;
         private System.Windows.Forms.Button MergeButton;
-        private System.Windows.Forms.Button CancelButton;
+        private System.Windows.Forms.Button cancelButton;
     }
 }
