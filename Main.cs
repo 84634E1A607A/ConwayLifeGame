@@ -98,14 +98,14 @@ namespace ConwayLifeGame
             {
                 paintTools.bkgndBitmap.Dispose();
                 paintTools.bkgndBitmap = new Bitmap(size.Width, size.Height);
+                paintTools.bkgndBitmapScale = Map.scale;
                 Graphics bitmapGraphics = Graphics.FromImage(paintTools.bkgndBitmap);
                 /*  lines in bkgndBitmap */
-                for (int i = mid_x % Map.scale; i <= size.Width; i += Map.scale)
+                for (int i = mid_x % paintTools.bkgndBitmapScale; i <= size.Width; i += paintTools.bkgndBitmapScale)
                     bitmapGraphics.DrawLine(paintTools.bkgndPen, i, 0, i, size.Height);
-                for (int i = mid_y % Map.scale; i <= size.Height; i += Map.scale)
+                for (int i = mid_y % paintTools.bkgndBitmapScale; i <= size.Height; i += paintTools.bkgndBitmapScale)
                     bitmapGraphics.DrawLine(paintTools.bkgndPen, 0, i, size.Width, i);
                 bitmapGraphics.Dispose();
-                paintTools.bkgndBitmapScale = Map.scale;
             }
 
             // Main Bitmap Init
