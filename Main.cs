@@ -23,6 +23,7 @@ namespace ConwayLifeGame
             {
                 paintTools.bkgndPen = new Pen(Color.FromArgb(0xFF, 0x88, 0x88, 0x88), 1);
                 paintTools.bkgndBitmap = new Bitmap(MainPictureBox.Width, MainPictureBox.Height);
+                paintTools.mapPicBitmap = new Bitmap(MainPictureBox.Width, MainPictureBox.Height);
                 paintTools.selectRectPen = new Pen(Color.FromArgb(0xAA, Color.DeepSkyBlue));
                 paintTools.selectRectBrush = new SolidBrush(Color.FromArgb(0x55, Color.CadetBlue));
                 paintTools.selectCellPen = new Pen(Color.DarkGreen, 3)
@@ -70,6 +71,8 @@ namespace ConwayLifeGame
         {
             public Bitmap mainPicBitmap;
 
+            public Bitmap mapPicBitmap;
+
             public Graphics graphics;
 
             public Pen bkgndPen;
@@ -87,6 +90,8 @@ namespace ConwayLifeGame
             public Thread paintThread;
         }
         PictureBoxPaintTools paintTools;
+
+        public Bitmap MapBitmap { get { return paintTools.mapPicBitmap; } set { paintTools.mapPicBitmap = value; } }
 
         private void MainPictureBox_Paint()
         {
@@ -123,7 +128,7 @@ namespace ConwayLifeGame
             paintTools.graphics.DrawImage(paintTools.bkgndBitmap, 0, 0);
 
             /*  blocks  */
-            Map.Draw(paintTools.graphics, size);
+            paintTools.graphics.DrawImage(paintTools.mapPicBitmap, 0, 0);
 
             /*  select  */
             {
@@ -181,6 +186,7 @@ namespace ConwayLifeGame
         {
             if (e.Button == MouseButtons.Left) MainPictureBox_LButtonDown(e);
             else if (e.Button == MouseButtons.Right) MainPictureBox_RButtonDown(e);
+            Map.Draw();
         }
 
         private void MainPictureBox_LButtonDown(MouseEventArgs e)
@@ -220,6 +226,7 @@ namespace ConwayLifeGame
                         break;
                     }
             }
+            Map.Draw();
         }
 
         private void MainPictureBox_RButtonDown(MouseEventArgs e)
@@ -228,6 +235,7 @@ namespace ConwayLifeGame
             int xc = (e.X - mid_x + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.x_pivot;
             int yc = (e.Y - mid_y + 0x1000 * Map.scale) / Map.scale - 0x1000 + Map.y_pivot;
             Map.AddPreset(xc, yc);
+            Map.Draw();
         }
 
         private void MainPictureBox_MouseMove(object sender, MouseEventArgs e)
@@ -261,6 +269,7 @@ namespace ConwayLifeGame
                                     Map.Change((int)(s.X + ((double)i - s.Y) * k), i, 1);
                             }
                             Map.mouse_info.previous = pcur;
+                            Map.Draw();
                             break;
                         }
                     case Map.MouseState.eraser:
@@ -278,6 +287,7 @@ namespace ConwayLifeGame
                                     Map.Change((int)(s.X + ((double)i - s.Y) * k), i, 2);
                             }
                             Map.mouse_info.previous = pcur;
+                            Map.Draw();
                             break;
                         }
                     case Map.MouseState.select:
@@ -321,6 +331,7 @@ namespace ConwayLifeGame
                     default: break;
                 }
             }
+            Map.Draw();
         }
 
         private void MainPictureBox_MouseWheel(object sender, MouseEventArgs e)
@@ -333,6 +344,7 @@ namespace ConwayLifeGame
                 if (i > 999) i = 999;
             }
             Program.control.MapScale.Value = i;
+            Map.Draw();
         }
 
         private void ClacTimer_Tick(object sender, EventArgs e)
@@ -435,6 +447,7 @@ namespace ConwayLifeGame
                         return;
                     }
             }
+            Map.Draw();
             e.Handled = true;
         }
 

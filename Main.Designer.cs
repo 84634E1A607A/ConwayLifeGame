@@ -57,7 +57,7 @@ namespace ConwayLifeGame
             // EditSeparator1
             // 
             EditSeparator1.Name = "EditSeparator1";
-            EditSeparator1.Size = new System.Drawing.Size(193, 6);
+            EditSeparator1.Size = new System.Drawing.Size(209, 6);
             // 
             // MainFormMenu
             // 
@@ -68,7 +68,7 @@ namespace ConwayLifeGame
             this.MainMenuHelp});
             this.MainFormMenu.Location = new System.Drawing.Point(0, 0);
             this.MainFormMenu.Name = "MainFormMenu";
-            this.MainFormMenu.Size = new System.Drawing.Size(711, 24);
+            this.MainFormMenu.Size = new System.Drawing.Size(711, 25);
             this.MainFormMenu.TabIndex = 0;
             this.MainFormMenu.Text = "Menu";
             // 
@@ -81,7 +81,7 @@ namespace ConwayLifeGame
             this.FileSave,
             this.FileExit});
             this.MainMenuFile.Name = "MainMenuFile";
-            this.MainMenuFile.Size = new System.Drawing.Size(37, 20);
+            this.MainMenuFile.Size = new System.Drawing.Size(39, 21);
             this.MainMenuFile.Text = "&File";
             // 
             // FileNewWindow
@@ -89,7 +89,7 @@ namespace ConwayLifeGame
             this.FileNewWindow.Name = "FileNewWindow";
             this.FileNewWindow.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
             this.FileNewWindow.ShowShortcutKeys = false;
-            this.FileNewWindow.Size = new System.Drawing.Size(138, 22);
+            this.FileNewWindow.Size = new System.Drawing.Size(145, 22);
             this.FileNewWindow.Text = "&New Window";
             this.FileNewWindow.Click += new System.EventHandler(this.FileNewWindow_Click);
             // 
@@ -98,7 +98,7 @@ namespace ConwayLifeGame
             this.FileOpen.Name = "FileOpen";
             this.FileOpen.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
             this.FileOpen.ShowShortcutKeys = false;
-            this.FileOpen.Size = new System.Drawing.Size(138, 22);
+            this.FileOpen.Size = new System.Drawing.Size(145, 22);
             this.FileOpen.Text = "&Open";
             this.FileOpen.Click += new System.EventHandler(this.FileOpen_Click);
             // 
@@ -107,7 +107,7 @@ namespace ConwayLifeGame
             this.FileSave.Name = "FileSave";
             this.FileSave.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
             this.FileSave.ShowShortcutKeys = false;
-            this.FileSave.Size = new System.Drawing.Size(138, 22);
+            this.FileSave.Size = new System.Drawing.Size(145, 22);
             this.FileSave.Text = "&Save";
             this.FileSave.Click += new System.EventHandler(this.FileSave_Click);
             // 
@@ -116,7 +116,7 @@ namespace ConwayLifeGame
             this.FileExit.Name = "FileExit";
             this.FileExit.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F4)));
             this.FileExit.ShowShortcutKeys = false;
-            this.FileExit.Size = new System.Drawing.Size(138, 22);
+            this.FileExit.Size = new System.Drawing.Size(145, 22);
             this.FileExit.Text = "E&xit";
             this.FileExit.Click += new System.EventHandler(this.FileExit_Click);
             // 
@@ -131,34 +131,34 @@ namespace ConwayLifeGame
             this.EditCopy,
             this.EditPaste});
             this.MainMenuEdit.Name = "MainMenuEdit";
-            this.MainMenuEdit.Size = new System.Drawing.Size(39, 20);
+            this.MainMenuEdit.Size = new System.Drawing.Size(42, 21);
             this.MainMenuEdit.Text = "&Edit";
             // 
             // EditShowWindow
             // 
             this.EditShowWindow.Name = "EditShowWindow";
-            this.EditShowWindow.Size = new System.Drawing.Size(196, 22);
+            this.EditShowWindow.Size = new System.Drawing.Size(212, 22);
             this.EditShowWindow.Text = "&Show Control Window";
             this.EditShowWindow.Click += new System.EventHandler(this.EditShowWindow_Click);
             // 
             // EditCreateSolid
             // 
             this.EditCreateSolid.Name = "EditCreateSolid";
-            this.EditCreateSolid.Size = new System.Drawing.Size(196, 22);
+            this.EditCreateSolid.Size = new System.Drawing.Size(212, 22);
             this.EditCreateSolid.Text = "Create &Solid Region";
             this.EditCreateSolid.Click += new System.EventHandler(this.EditCreateSolid_Click);
             // 
             // EditCreateRandom
             // 
             this.EditCreateRandom.Name = "EditCreateRandom";
-            this.EditCreateRandom.Size = new System.Drawing.Size(196, 22);
+            this.EditCreateRandom.Size = new System.Drawing.Size(212, 22);
             this.EditCreateRandom.Text = "Create &Random Region";
             this.EditCreateRandom.Click += new System.EventHandler(this.EditCreateRandom_Click);
             // 
             // EditDeleteRegion
             // 
             this.EditDeleteRegion.Name = "EditDeleteRegion";
-            this.EditDeleteRegion.Size = new System.Drawing.Size(196, 22);
+            this.EditDeleteRegion.Size = new System.Drawing.Size(212, 22);
             this.EditDeleteRegion.Text = "&Delete Solid Region";
             this.EditDeleteRegion.Click += new System.EventHandler(this.EditDeleteRegion_Click);
             // 
@@ -167,7 +167,7 @@ namespace ConwayLifeGame
             this.EditCopy.Name = "EditCopy";
             this.EditCopy.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C)));
             this.EditCopy.ShowShortcutKeys = false;
-            this.EditCopy.Size = new System.Drawing.Size(196, 22);
+            this.EditCopy.Size = new System.Drawing.Size(212, 22);
             this.EditCopy.Text = "&Copy";
             this.EditCopy.Click += new System.EventHandler(this.EditCopy_Click);
             // 
@@ -176,7 +176,7 @@ namespace ConwayLifeGame
             this.EditPaste.Name = "EditPaste";
             this.EditPaste.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.V)));
             this.EditPaste.ShowShortcutKeys = false;
-            this.EditPaste.Size = new System.Drawing.Size(196, 22);
+            this.EditPaste.Size = new System.Drawing.Size(212, 22);
             this.EditPaste.Text = "&Paste";
             this.EditPaste.Click += new System.EventHandler(this.EditPaste_Click);
             // 
@@ -186,7 +186,7 @@ namespace ConwayLifeGame
             this.HelpAbout,
             this.HelpHelp});
             this.MainMenuHelp.Name = "MainMenuHelp";
-            this.MainMenuHelp.Size = new System.Drawing.Size(44, 20);
+            this.MainMenuHelp.Size = new System.Drawing.Size(47, 21);
             this.MainMenuHelp.Text = "&Help";
             // 
             // HelpAbout
@@ -194,7 +194,7 @@ namespace ConwayLifeGame
             this.HelpAbout.Name = "HelpAbout";
             this.HelpAbout.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
             | System.Windows.Forms.Keys.H)));
-            this.HelpAbout.Size = new System.Drawing.Size(182, 22);
+            this.HelpAbout.Size = new System.Drawing.Size(191, 22);
             this.HelpAbout.Text = "&About";
             this.HelpAbout.Click += new System.EventHandler(this.HelpAbout_Click);
             // 
@@ -202,7 +202,7 @@ namespace ConwayLifeGame
             // 
             this.HelpHelp.Name = "HelpHelp";
             this.HelpHelp.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.H)));
-            this.HelpHelp.Size = new System.Drawing.Size(182, 22);
+            this.HelpHelp.Size = new System.Drawing.Size(191, 22);
             this.HelpHelp.Text = "&Help";
             this.HelpHelp.Click += new System.EventHandler(this.HelpHelp_Click);
             // 
@@ -211,9 +211,9 @@ namespace ConwayLifeGame
             this.MainPictureBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.MainPictureBox.Location = new System.Drawing.Point(0, 25);
+            this.MainPictureBox.Location = new System.Drawing.Point(0, 28);
             this.MainPictureBox.Name = "MainPictureBox";
-            this.MainPictureBox.Size = new System.Drawing.Size(711, 347);
+            this.MainPictureBox.Size = new System.Drawing.Size(711, 393);
             this.MainPictureBox.TabIndex = 1;
             this.MainPictureBox.TabStop = false;
             this.MainPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseDown);
@@ -227,9 +227,9 @@ namespace ConwayLifeGame
             // 
             // Main
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(711, 371);
+            this.ClientSize = new System.Drawing.Size(711, 420);
             this.Controls.Add(this.MainPictureBox);
             this.Controls.Add(this.MainFormMenu);
             this.MainMenuStrip = this.MainFormMenu;

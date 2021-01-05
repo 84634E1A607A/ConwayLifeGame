@@ -207,6 +207,7 @@ namespace ConwayLifeGame
                 px = px.next;
             }
             Clear(nxt);
+            Draw();
         }
 
         public static void LoadLF(string f)
@@ -292,9 +293,12 @@ namespace ConwayLifeGame
             fs.Close();
         }
 
-        public static void Draw(Graphics graphics, Size size)
+        public static void Draw()
         {
-            int mid_x = size.Width / 2, mid_y = size.Height / 2;
+            Bitmap bitmap = new Bitmap(Program.main.MainPictureBox.Width, Program.main.MainPictureBox.Height);
+            int mid_x = Program.main.MainPictureBox.Width / 2, mid_y = Program.main.MainPictureBox.Height / 2;
+            Graphics graphics = Graphics.FromImage(bitmap);
+            graphics.Clear(Color.Transparent);
             graphics.TranslateTransform(mid_x, mid_y);
             int left = (-mid_x) / scale + x_pivot - 1, right = mid_x / scale + x_pivot + 1;
             int top = (-mid_y) / scale + y_pivot - 1, bottom = mid_y / scale + y_pivot + 1;
@@ -313,8 +317,11 @@ namespace ConwayLifeGame
                 }
                 px = px.next;
             }
-            graphics.ResetTransform();
+            graphics.Dispose();
             brush.Dispose();
+            Bitmap t = Program.main.MapBitmap;
+            Program.main.MapBitmap = bitmap;
+            t.Dispose();
         }
 
         private static Head Insert(Head p)
