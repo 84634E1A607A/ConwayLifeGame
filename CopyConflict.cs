@@ -19,19 +19,19 @@ namespace ConwayLifeGame
 
         private void ReplaceButton_Click(object sender, EventArgs e)
         {
-            Map.copy_info.copyState = Map.CopyState.replace;
+            Map.CopyInfo.copyState = Map.CopyState.replace;
             Close();
         }
 
         private void MergeButton_Click(object sender, EventArgs e)
         {
-            Map.copy_info.copyState = Map.CopyState.merge;
+            Map.CopyInfo.copyState = Map.CopyState.merge;
             Close();
         }
 
         private void CancelButton_Click(object sender, EventArgs e)
         {
-            Map.copy_info.copyState = Map.CopyState.cancel;
+            Map.CopyInfo.copyState = Map.CopyState.cancel;
             Close();
         }
     }

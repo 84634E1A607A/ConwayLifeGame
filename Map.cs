@@ -55,7 +55,7 @@ namespace ConwayLifeGame
             public bool count;
             public MouseState lastMouseState;
         };
-        public static AddRegionInfo add_region_info;
+        public static AddRegionInfo AddRgnInfo;
 
         public enum KeyboardInputState
         {
@@ -63,7 +63,7 @@ namespace ConwayLifeGame
             bulitin,
             direction
         }
-        public static KeyboardInputState keyboard_input_state;
+        public static KeyboardInputState KeybdInputState { get; set; }
 
         public enum MouseState
         {
@@ -73,14 +73,14 @@ namespace ConwayLifeGame
             drag,
             select
         }
-        public struct MouseInfo
+        public struct MouseInformation
         {
             public MouseState state;
             public Point previous;          // Rleative to Map
             public Point select_first;      // Relative to Window
             public Point select_second;     // Relative to Window
         }
-        public static MouseInfo mouse_info;
+        public static MouseInformation MouseInfo;
 
         public enum CopyState
         {
@@ -88,18 +88,26 @@ namespace ConwayLifeGame
             merge,
             cancel
         }
-        public struct CopyInfo
+        public struct CopyInformation
         {
             public bool state;
             public Point first;
             public Point second;
             public CopyState copyState;
         }
-        public static CopyInfo copy_info;
+        public static CopyInformation CopyInfo;
 
-        public static int selected_preset, selected_direction, x_pivot = 0x08000000, y_pivot = 0x08000000, timer = 100, scale = 10;
-        public static bool started;
-        
+        private static int _selectedPreset, _selectedDirection, _xPivot = 0x08000000, _yPivot = 0x08000000, _timer = 100, _scale = 10;
+        public static int SelectedPreset { get => _selectedPreset; set => _selectedPreset = value; }
+        public static int SelectedDirection { get => _selectedDirection; set => _selectedDirection = value; }
+        public static int XPivot { get => _xPivot; set => _xPivot = value; }
+        public static int YPivot { get => _yPivot; set => _yPivot = value; }
+        public static int Timer { get => _timer; set => _timer = value; }
+        public static int Scale { get => _scale; set => _scale = value; }
+
+        private static bool _started;
+        public static bool Started { get => _started; set => _started = value; }
+
         private static Head Add(int xpos, int ypos, Head acce)
         {
             Head px = nxt;
@@ -219,8 +227,8 @@ namespace ConwayLifeGame
             {
                 fs = new FileStream(f, FileMode.Open);
                 BinaryReader reader = new BinaryReader(fs);
-                x_pivot = reader.ReadInt32();
-                y_pivot = reader.ReadInt32();
+                _xPivot = reader.ReadInt32();
+                _yPivot = reader.ReadInt32();
                 if (reader.ReadUInt32() != 0xffffffff)
                 {
                     Program.control.Reset_Click(null, null);
@@ -263,20 +271,20 @@ namespace ConwayLifeGame
             string str = File.ReadAllText(f);
             DumpStruct s = JsonSerializer.Deserialize<DumpStruct>(str);
 
-            x_pivot = s.Xp; y_pivot = s.Yp; scale = s.S;
-            foreach (DumpStruct.Point p in s.P) { Change(p.X + x_pivot, p.Y + y_pivot); }
+            _xPivot = s.Xp; _yPivot = s.Yp; _scale = s.S;
+            foreach (DumpStruct.Point p in s.P) { Change(p.X + _xPivot, p.Y + _yPivot); }
         }
 
         public static void DumpLFS(string f)
         {
-            if (started) Program.control.StartStop_Click(null, null);
+            if (_started) Program.control.StartStop_Click(null, null);
 
             DumpStruct s = new DumpStruct
             {
                 // Stat
-                Xp = x_pivot,
-                Yp = y_pivot,
-                S = scale
+                Xp = _xPivot,
+                Yp = _yPivot,
+                S = _scale
             };
 
             // Points
@@ -284,7 +292,7 @@ namespace ConwayLifeGame
             for (Head h = cur; h != null; h = h.next) for (Node n = h.node.next; n != null; n = n.next) c++;
             DumpStruct.Point[] p = new DumpStruct.Point[c];
             c = 0;
-            for (Head h = cur; h != null; h = h.next) for (Node n = h.node.next; n != null; n = n.next) { p[c] = new DumpStruct.Point(h.x - x_pivot, n.y - y_pivot); c++; }
+            for (Head h = cur; h != null; h = h.next) for (Node n = h.node.next; n != null; n = n.next) { p[c] = new DumpStruct.Point(h.x - _xPivot, n.y - _yPivot); c++; }
             s.P = p;
 
             // Dump
@@ -300,8 +308,8 @@ namespace ConwayLifeGame
             Graphics graphics = Graphics.FromImage(bitmap);
             graphics.Clear(Color.Transparent);
             graphics.TranslateTransform(mid_x, mid_y);
-            int left = (-mid_x) / scale + x_pivot - 1, right = mid_x / scale + x_pivot + 1;
-            int top = (-mid_y) / scale + y_pivot - 1, bottom = mid_y / scale + y_pivot + 1;
+            int left = (-mid_x) / _scale + _xPivot - 1, right = mid_x / _scale + _xPivot + 1;
+            int top = (-mid_y) / _scale + _yPivot - 1, bottom = mid_y / _scale + _yPivot + 1;
             Head pl = cur;
             while (pl.next != null && pl.next.x < left) pl = pl.next;
             Head px = pl;
@@ -312,40 +320,36 @@ namespace ConwayLifeGame
                 while (py.next != null && py.next.y < top) py = py.next;
                 while (py.next != null && py.next.y <= bottom)
                 {
-                    graphics.FillRectangle(brush, (px.next.x - x_pivot) * scale + 1, (py.next.y - y_pivot) * scale + 1, scale - 1, scale - 1);
+                    graphics.FillRectangle(brush, (px.next.x - _xPivot) * _scale + 1, (py.next.y - _yPivot) * _scale + 1, _scale - 1, _scale - 1);
                     py = py.next;
                 }
                 px = px.next;
             }
             graphics.Dispose();
             brush.Dispose();
-            Bitmap t = Program.main.MapBitmap;
-            Program.main.MapBitmap = bitmap;
+            Bitmap t = Main.MapBitmap;
+            Main.MapBitmap = bitmap;
             t.Dispose();
         }
 
         private static Head Insert(Head p)
         {
-            Head pn = new Head();
-            pn.next = p.next;
-            p.next = pn;
             Node node = new Node();
-            pn.node = node;
+            Head pn = new Head { next = p.next, node = node };
+            p.next = pn;
             return pn;
         }
 
         private static Node Insert(Node p)
         {
-            Node pn = new Node();
-            pn.next = p.next;
+            Node pn = new Node { next = p.next };
             p.next = pn;
             return pn;
         }
 
         private static void Del(Node p)
         {
-            Node pd = p.next;
-            p.next = pd.next;
+            p.next = p.next?.next;
         }
 
         /*private static void Del(Head h)
@@ -357,11 +361,11 @@ namespace ConwayLifeGame
 
         public static void Reset()
         {
-            started = false;
-            selected_preset = selected_direction = 0;
-            x_pivot = y_pivot = 0x08000000;
-            timer = 100;
-            scale = 10;
+            _started = false;
+            _selectedPreset = _selectedDirection = 0;
+            _xPivot = _yPivot = 0x08000000;
+            _timer = 100;
+            _scale = 10;
             Clear(cur);
         }
 
@@ -372,9 +376,9 @@ namespace ConwayLifeGame
 
         public static void AddPreset(int xpos, int ypos)
         {
-            byte s = (byte)presets[selected_preset].points.Length, l = (byte)(presets[selected_preset].width - 1), h = (byte)(presets[selected_preset].height - 1);
-            Point[] cur = presets[selected_preset].points;
-            switch (selected_direction)
+            byte s = (byte)presets[_selectedPreset].points.Length, l = (byte)(presets[_selectedPreset].width - 1), h = (byte)(presets[_selectedPreset].height - 1);
+            Point[] cur = presets[_selectedPreset].points;
+            switch (_selectedDirection)
             {
                 case 0:
                     for (byte i = 0; i < s; i++) Change(xpos + cur[i].X, ypos + cur[i].Y, 1);
@@ -407,7 +411,7 @@ namespace ConwayLifeGame
         {
             int left = Math.Min(p1.X, p2.X), top = Math.Min(p1.Y, p2.Y), right = Math.Max(p1.X, p2.X), bottom = Math.Max(p1.Y, p2.Y);
             Head acce = null;
-            switch (add_region_info.state)
+            switch (AddRgnInfo.state)
             {
                 case AddRegionState.random:
                     {
@@ -439,7 +443,7 @@ namespace ConwayLifeGame
 
         public static Preset GetBulitinInfo(int b = -1)
         {
-            if (b == -1) b = selected_preset;
+            if (b == -1) b = _selectedPreset;
             try { return presets[b]; }
             catch (Exception) { return null; }
         }
@@ -556,29 +560,20 @@ namespace ConwayLifeGame
 
         private static void InitPresets()
         {
-            presets = new Preset[0];
+            presets = Array.Empty<Preset>();
             string[] files;
-            try
-            {
-                files = Directory.GetFiles("presets");
-            }
-            catch
-            { files = new string[] { "" }; }
+            try { files = Directory.GetFiles("presets"); }
+            catch { files = Array.Empty<string>(); }
 
             foreach (string fname in files)
                 if (fname.EndsWith(".lfs"))
-                    try
-                    {
-                        LoadPreset(fname);
-                    } catch
-                    {
-                        System.Windows.Forms.MessageBox.Show("Bad preset file: " + fname, "Error");
-                    }
+                    try { LoadPreset(fname); }
+                    catch { System.Windows.Forms.MessageBox.Show("Bad preset file: " + fname, "Error"); }
 
             if (presets.Length == 0)
             {
-                presets = new Preset[1];
-                presets[0] = new Preset(new Point[] { new Point() }, 1, 1);
+                presets = Array.Empty<Preset>();
+                //presets = new Preset[] { new Preset(new Point[] { new Point() }, 1, 1) };
                 System.Windows.Forms.MessageBox.Show("No preset found!", "Error");
             }
         }
@@ -602,12 +597,12 @@ namespace ConwayLifeGame
             presets[^1] = preset;
         }
 
-        public static int GetPresetNum() { return presets.Length; }
+        public static int PresetNum { get => presets.Length; }
 
         public static void Paste(int x, int y)
         {
-            int left = Math.Min(copy_info.first.X, copy_info.second.X), top = Math.Min(copy_info.first.Y, copy_info.second.Y),
-                right = Math.Max(copy_info.first.X, copy_info.second.X), bottom = Math.Max(copy_info.first.Y, copy_info.second.Y),
+            int left = Math.Min(CopyInfo.first.X, CopyInfo.second.X), top = Math.Min(CopyInfo.first.Y, CopyInfo.second.Y),
+                right = Math.Max(CopyInfo.first.X, CopyInfo.second.X), bottom = Math.Max(CopyInfo.first.Y, CopyInfo.second.Y),
                 width = right - left + 1, height = bottom - top + 1;
             Point[] points = new Point[width * height];
             Head px = cur.next; int pos = 0;
@@ -638,7 +633,7 @@ namespace ConwayLifeGame
             if (conflict)
             {
                 new CopyConflict().ShowDialog();
-                switch (copy_info.copyState)
+                switch (CopyInfo.copyState)
                 {
                     case CopyState.cancel:
                         {
