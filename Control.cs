@@ -75,13 +75,13 @@ namespace ConwayLifeGame
 
         private void PresetSelect_ValueChanged(object sender, EventArgs e)
         {
-            Map.SelectedPreset = (byte)PresetSelect.Value;
+            Map.SelectedPreset = (int)PresetSelect.Value;
             PreviewPictureBox_Paint();
         }
 
         private void DirectionSelect_ValueChanged(object sender, EventArgs e)
         {
-            Map.SelectedDirection = (byte)DirectionSelect.Value;
+            Map.SelectedDirection = (int)DirectionSelect.Value;
         }
 
         private void XPivot_ValueChanged(object sender, EventArgs e)

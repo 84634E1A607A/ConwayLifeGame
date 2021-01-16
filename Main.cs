@@ -104,6 +104,7 @@ namespace ConwayLifeGame
                 PaintTools.bkgndBitmap = new Bitmap(size.Width, size.Height);
                 PaintTools.bkgndBitmapScale = Map.Scale;
                 Graphics bitmapGraphics = Graphics.FromImage(PaintTools.bkgndBitmap);
+                bitmapGraphics.Clear(Color.White);
                 /*  lines in bkgndBitmap */
                 for (int i = mid_x % PaintTools.bkgndBitmapScale; i <= size.Width; i += PaintTools.bkgndBitmapScale)
                     bitmapGraphics.DrawLine(PaintTools.bkgndPen, i, 0, i, size.Height);
@@ -120,8 +121,6 @@ namespace ConwayLifeGame
                 PaintTools.mainPicBitmap = new Bitmap(size.Width, size.Height);
                 PaintTools.graphics = Graphics.FromImage(PaintTools.mainPicBitmap);
             }
-
-            PaintTools.graphics.Clear(BackColor);
 
             /*  lines   */
             PaintTools.graphics.DrawImage(PaintTools.bkgndBitmap, 0, 0);
@@ -178,7 +177,8 @@ namespace ConwayLifeGame
                     catch (InvalidOperationException) { Thread.Sleep(20); }
                 }
             }
-            catch (ArgumentException) { return; }
+            catch (ArgumentException)
+            { return; }
         }
 
         private void MainPictureBox_MouseDown(object sender, MouseEventArgs e)
@@ -251,6 +251,7 @@ namespace ConwayLifeGame
                         {
                             Program.control.XPivot.Value = Map.MouseInfo.previous.X - xc + Map.XPivot;
                             Program.control.YPivot.Value = Map.MouseInfo.previous.Y - yc + Map.YPivot;
+                            Map.Draw();
                             break;
                         }
                     case Map.MouseState.pen:
@@ -425,7 +426,8 @@ namespace ConwayLifeGame
                             case Map.KeyboardInputState.normal: { e.Handled = false; return; }
                             case Map.KeyboardInputState.bulitin:
                                 {
-                                    Program.control.PresetSelect.Value = e.KeyCode - Keys.D0;
+                                    try { Program.control.PresetSelect.Value = e.KeyCode - Keys.D0; }
+                                    catch (ArgumentOutOfRangeException) { }
                                     break;
                                 }
                             case Map.KeyboardInputState.direction:
@@ -580,6 +582,11 @@ namespace ConwayLifeGame
             int yc = (int)((Map.MouseInfo.select_first.Y - mid_y + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.YPivot);
             Map.Paste(xc, yc);
             Map.CopyInfo.state = false;
+            Map.Draw();
+        }
+
+        private void MainPictureBox_SizeChanged(object sender, EventArgs e)
+        {
             Map.Draw();
         }
     }

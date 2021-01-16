@@ -216,6 +216,7 @@ namespace ConwayLifeGame
             this.MainPictureBox.Size = new System.Drawing.Size(711, 393);
             this.MainPictureBox.TabIndex = 1;
             this.MainPictureBox.TabStop = false;
+            this.MainPictureBox.SizeChanged += new System.EventHandler(this.MainPictureBox_SizeChanged);
             this.MainPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseDown);
             this.MainPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseMove);
             this.MainPictureBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseUp);

@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Threading;
 using System.IO;
 using System.Text.Json;
+using System.Collections.Generic;
 
 namespace ConwayLifeGame
 {
@@ -40,7 +41,7 @@ namespace ConwayLifeGame
         
         private readonly static Head cur = new Head();
         private readonly static Head nxt = new Head();
-        private static Preset[] presets;
+        private static List<Preset> presets;
         
         public enum AddRegionState
         {
@@ -303,33 +304,37 @@ namespace ConwayLifeGame
 
         public static void Draw()
         {
-            Bitmap bitmap = new Bitmap(Program.main.MainPictureBox.Width, Program.main.MainPictureBox.Height);
-            int mid_x = Program.main.MainPictureBox.Width / 2, mid_y = Program.main.MainPictureBox.Height / 2;
-            Graphics graphics = Graphics.FromImage(bitmap);
-            graphics.Clear(Color.Transparent);
-            graphics.TranslateTransform(mid_x, mid_y);
-            int left = (-mid_x) / _scale + _xPivot - 1, right = mid_x / _scale + _xPivot + 1;
-            int top = (-mid_y) / _scale + _yPivot - 1, bottom = mid_y / _scale + _yPivot + 1;
-            Head pl = cur;
-            while (pl.next != null && pl.next.x < left) pl = pl.next;
-            Head px = pl;
-            SolidBrush brush = new SolidBrush(Color.Black);
-            while (px.next != null && px.next.x <= right)
+            try
             {
-                Node py = px.next.node;
-                while (py.next != null && py.next.y < top) py = py.next;
-                while (py.next != null && py.next.y <= bottom)
+                Bitmap bitmap = new Bitmap(Program.main.MainPictureBox.Width, Program.main.MainPictureBox.Height);
+                int mid_x = Program.main.MainPictureBox.Width / 2, mid_y = Program.main.MainPictureBox.Height / 2;
+                Graphics graphics = Graphics.FromImage(bitmap);
+                graphics.Clear(Color.Transparent);
+                graphics.TranslateTransform(mid_x, mid_y);
+                int left = (-mid_x) / _scale + _xPivot - 1, right = mid_x / _scale + _xPivot + 1;
+                int top = (-mid_y) / _scale + _yPivot - 1, bottom = mid_y / _scale + _yPivot + 1;
+                Head pl = cur;
+                while (pl.next != null && pl.next.x < left) pl = pl.next;
+                Head px = pl;
+                SolidBrush brush = new SolidBrush(Color.Black);
+                while (px.next != null && px.next.x <= right)
                 {
-                    graphics.FillRectangle(brush, (px.next.x - _xPivot) * _scale + 1, (py.next.y - _yPivot) * _scale + 1, _scale - 1, _scale - 1);
-                    py = py.next;
+                    Node py = px.next.node;
+                    while (py.next != null && py.next.y < top) py = py.next;
+                    while (py.next != null && py.next.y <= bottom)
+                    {
+                        graphics.FillRectangle(brush, (px.next.x - _xPivot) * _scale + 1, (py.next.y - _yPivot) * _scale + 1, _scale - 1, _scale - 1);
+                        py = py.next;
+                    }
+                    px = px.next;
                 }
-                px = px.next;
+                graphics.Dispose();
+                brush.Dispose();
+                Bitmap t = Main.MapBitmap;
+                Main.MapBitmap = bitmap;
+                t.Dispose();
             }
-            graphics.Dispose();
-            brush.Dispose();
-            Bitmap t = Main.MapBitmap;
-            Main.MapBitmap = bitmap;
-            t.Dispose();
+            catch (ArgumentException) { }
         }
 
         private static Head Insert(Head p)
@@ -441,11 +446,10 @@ namespace ConwayLifeGame
             }
         }
 
-        public static Preset GetBulitinInfo(int b = -1)
+        public static Preset GetBulitinInfo()
         {
-            if (b == -1) b = _selectedPreset;
-            try { return presets[b]; }
-            catch (Exception) { return null; }
+            try { return presets[_selectedPreset]; }
+            catch (Exception) { return presets[0]; }
         }
 
         public static void Initialize()
@@ -560,7 +564,7 @@ namespace ConwayLifeGame
 
         private static void InitPresets()
         {
-            presets = Array.Empty<Preset>();
+            presets = new List<Preset>();
             string[] files;
             try { files = Directory.GetFiles("presets"); }
             catch { files = Array.Empty<string>(); }
@@ -570,10 +574,9 @@ namespace ConwayLifeGame
                     try { LoadPreset(fname); }
                     catch { System.Windows.Forms.MessageBox.Show("Bad preset file: " + fname, "Error"); }
 
-            if (presets.Length == 0)
+            if (presets.Count == 0)
             {
-                presets = Array.Empty<Preset>();
-                //presets = new Preset[] { new Preset(new Point[] { new Point() }, 1, 1) };
+                presets.Add(new Preset(new Point[] { new Point() }, 1, 1));
                 System.Windows.Forms.MessageBox.Show("No preset found!", "Error");
             }
         }
@@ -590,14 +593,10 @@ namespace ConwayLifeGame
                 if (s.P[i].X > w) w = s.P[i].X;
                 if (s.P[i].Y > h) h = s.P[i].Y;
             }
-            Preset preset = new Preset(points, (byte)(h + 1), (byte)(w + 1));
-            Preset[] arr = new Preset[presets.Length + 1];
-            presets.CopyTo(arr, 0);
-            presets = arr;
-            presets[^1] = preset;
+            presets.Add(new Preset(points, (byte)(h + 1), (byte)(w + 1)));
         }
 
-        public static int PresetNum { get => presets.Length; }
+        public static int PresetNum { get => presets.Count; }
 
         public static void Paste(int x, int y)
         {
