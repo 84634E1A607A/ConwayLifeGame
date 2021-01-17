@@ -47,11 +47,11 @@ namespace ConwayLifeGame
             this.MainMenuHelp = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpAbout = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpHelp = new System.Windows.Forms.ToolStripMenuItem();
-            this.MainPictureBox = new System.Windows.Forms.PictureBox();
+            this.MainPanel = new System.Windows.Forms.Panel();
             this.ClacTimer = new System.Windows.Forms.Timer(this.components);
+            this.PaintTimer = new System.Windows.Forms.Timer(this.components);
             EditSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.MainFormMenu.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.MainPictureBox)).BeginInit();
             this.SuspendLayout();
             // 
             // EditSeparator1
@@ -206,32 +206,37 @@ namespace ConwayLifeGame
             this.HelpHelp.Text = "&Help";
             this.HelpHelp.Click += new System.EventHandler(this.HelpHelp_Click);
             // 
-            // MainPictureBox
+            // MainPanel
             // 
-            this.MainPictureBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.MainPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.MainPictureBox.Location = new System.Drawing.Point(0, 28);
-            this.MainPictureBox.Name = "MainPictureBox";
-            this.MainPictureBox.Size = new System.Drawing.Size(711, 393);
-            this.MainPictureBox.TabIndex = 1;
-            this.MainPictureBox.TabStop = false;
-            this.MainPictureBox.SizeChanged += new System.EventHandler(this.MainPictureBox_SizeChanged);
-            this.MainPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseDown);
-            this.MainPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseMove);
-            this.MainPictureBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseUp);
-            this.MainPictureBox.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseWheel);
+            this.MainPanel.Location = new System.Drawing.Point(0, 28);
+            this.MainPanel.Name = "MainPanel";
+            this.MainPanel.Size = new System.Drawing.Size(711, 393);
+            this.MainPanel.TabIndex = 1;
+            this.MainPanel.SizeChanged += new System.EventHandler(this.MainPanel_SizeChanged);
+            this.MainPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainPanel_MouseDown);
+            this.MainPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MainPanel_MouseMove);
+            this.MainPanel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MainPanel_MouseUp);
+            this.MainPanel.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.MainPanel_MouseWheel);
             // 
             // ClacTimer
             // 
             this.ClacTimer.Tick += new System.EventHandler(this.ClacTimer_Tick);
+            // 
+            // PaintTimer
+            // 
+            this.PaintTimer.Enabled = true;
+            this.PaintTimer.Interval = 20;
+            this.PaintTimer.Tick += new System.EventHandler(this.PaintTimer_Tick);
             // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(711, 420);
-            this.Controls.Add(this.MainPictureBox);
+            this.Controls.Add(this.MainPanel);
             this.Controls.Add(this.MainFormMenu);
             this.MainMenuStrip = this.MainFormMenu;
             this.Name = "Main";
@@ -240,7 +245,6 @@ namespace ConwayLifeGame
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Main_KeyDown);
             this.MainFormMenu.ResumeLayout(false);
             this.MainFormMenu.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.MainPictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -259,13 +263,14 @@ namespace ConwayLifeGame
         private System.Windows.Forms.ToolStripMenuItem EditCreateSolid;
         private System.Windows.Forms.ToolStripMenuItem EditCreateRandom;
         private System.Windows.Forms.ToolStripMenuItem EditDeleteRegion;
+        private System.Windows.Forms.ToolStripMenuItem EditCopy;
+        private System.Windows.Forms.ToolStripMenuItem EditPaste;
         private System.Windows.Forms.ToolStripMenuItem MainMenuHelp;
         private System.Windows.Forms.ToolStripMenuItem HelpAbout;
         private System.Windows.Forms.ToolStripMenuItem HelpHelp;
-        public System.Windows.Forms.PictureBox MainPictureBox;
+        public System.Windows.Forms.Panel MainPanel;
         public System.Windows.Forms.Timer ClacTimer;
-        private System.Windows.Forms.ToolStripMenuItem EditCopy;
-        private System.Windows.Forms.ToolStripMenuItem EditPaste;
+        private System.Windows.Forms.Timer PaintTimer;
     }
 }
 
