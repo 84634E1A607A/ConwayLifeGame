@@ -19,7 +19,15 @@ namespace ConwayLifeGame
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(main = new Main());
+            try
+            {
+                Application.Run(main = new Main());
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message + "\r\n" + e.StackTrace, "Exception unhandled");
+                throw;
+            }
         }
     }
 }

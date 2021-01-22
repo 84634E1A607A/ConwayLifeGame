@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Text;
-using System.Threading;
 using System.Windows.Forms;
 using SharpDX;
 using SharpDX.Direct2D1;
 using SharpDX.Mathematics.Interop;
-
 
 namespace ConwayLifeGame
 {
@@ -17,7 +14,6 @@ namespace ConwayLifeGame
         public Main()
         {
             InitializeComponent();
-            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
             Map.Initialize();
             Program.control = new Control();
         }
@@ -42,10 +38,12 @@ namespace ConwayLifeGame
         private void EditShowWindow_Click(object sender, EventArgs e)
         {
             Program.control.Show();
+            Program.control.Focus();
         }
 
         private void FileExit_Click(object sender, EventArgs e)
         {
+            Program.control.Dispose();
             Application.Exit();
         }
 
@@ -61,32 +59,40 @@ namespace ConwayLifeGame
             public static Brush selectCellPen;
             public static Brush copyBrush;
             public static Brush copyPen;
+            public static PathGeometry bkgndGeometry;
+            public static int bkgndScale;
+            public static Size2F bkgndSize;
 
-            public static void Init()
+            public static bool Init()
             {
-                factory = new Factory(FactoryType.SingleThreaded);
-                renderProps = new RenderTargetProperties()
-                {
-                    PixelFormat = new PixelFormat { AlphaMode = AlphaMode.Ignore, Format = SharpDX.DXGI.Format.B8G8R8A8_UNorm },
-                    Usage = RenderTargetUsage.None,
-                    Type = RenderTargetType.Default
-                };
-                hwndProps = new HwndRenderTargetProperties()
-                {
-                    Hwnd = Program.main.MainPanel.Handle,
-                    PixelSize = new Size2(Program.main.MainPanel.Width, Program.main.MainPanel.Height),
-                    PresentOptions = PresentOptions.None
-                };
-                renderTarget = new WindowRenderTarget(factory, renderProps, hwndProps)
-                {
-                    AntialiasMode = AntialiasMode.PerPrimitive
-                };
-                bkgndPen = new SolidColorBrush(renderTarget, new RawColor4(0.3f, 0.3f, 0.3f, 1.0f));
-                selectRectBrush = new SolidColorBrush(renderTarget, new RawColor4(0x00 / 256.0f, 0x97 / 256.0f, 0xA7 / 256.0f, 0.5f));
-                selectRectPen = new SolidColorBrush(renderTarget, new RawColor4(0x1A / 256.0f, 0x23 / 256.0f, 0x7E / 256.0f, 1));
-                selectCellPen = new SolidColorBrush(renderTarget, new RawColor4(0x1B / 256.0f, 0x5E / 256.0f, 0x20 / 256.0f, 1));
-                copyBrush = new SolidColorBrush(renderTarget, new RawColor4(0x66 / 256.0f, 0xBB / 256.0f, 0x6A / 256.0f, 0.5f));
-                copyPen = selectRectPen;
+                try {
+                    factory = new Factory(FactoryType.SingleThreaded);
+                    renderProps = new RenderTargetProperties()
+                    {
+                        PixelFormat = new PixelFormat { AlphaMode = AlphaMode.Ignore, Format = SharpDX.DXGI.Format.B8G8R8A8_UNorm },
+                        Usage = RenderTargetUsage.None,
+                        Type = RenderTargetType.Default
+                    };
+                    hwndProps = new HwndRenderTargetProperties()
+                    {
+                        Hwnd = Program.main.MainPanel.Handle,
+                        PixelSize = new Size2(Program.main.MainPanel.Width, Program.main.MainPanel.Height),
+                        PresentOptions = PresentOptions.None
+                    };
+                    renderTarget = new WindowRenderTarget(factory, renderProps, hwndProps)
+                    {
+                        AntialiasMode = AntialiasMode.PerPrimitive,
+                        DotsPerInch = new Size2F(96, 96)
+                    };
+                    bkgndPen = new SolidColorBrush(renderTarget, new RawColor4(0.3f, 0.3f, 0.3f, 1.0f));
+                    selectRectBrush = new SolidColorBrush(renderTarget, new RawColor4(0x00 / 256.0f, 0x97 / 256.0f, 0xA7 / 256.0f, 0.5f));
+                    selectRectPen = new SolidColorBrush(renderTarget, new RawColor4(0x1A / 256.0f, 0x23 / 256.0f, 0x7E / 256.0f, 1));
+                    selectCellPen = new SolidColorBrush(renderTarget, new RawColor4(0x1B / 256.0f, 0x5E / 256.0f, 0x20 / 256.0f, 1));
+                    copyBrush = new SolidColorBrush(renderTarget, new RawColor4(0x66 / 256.0f, 0xBB / 256.0f, 0x6A / 256.0f, 0.5f));
+                    copyPen = selectRectPen;
+                    bkgndGeometry = new PathGeometry(factory);
+                } catch { return false; }
+                return true;
             }
         }
 
@@ -94,7 +100,7 @@ namespace ConwayLifeGame
         {
             //  Init D2D
             if (PaintTools.renderTarget == null)
-            { PaintTools.Init(); }
+            { if (!PaintTools.Init()) return; }
 
             //  Begin draw
             RenderTarget target = PaintTools.renderTarget;
@@ -105,14 +111,33 @@ namespace ConwayLifeGame
             int mid_x = size.Width / 2, mid_y = size.Height / 2, Scale = Map.Scale;
 
             //  Lines
-            for (int i = mid_x % Scale; i <= size.Width; i += Scale)
-                target.DrawLine(new RawVector2(i, 0), new RawVector2(i, size.Height), PaintTools.bkgndPen, 1f);
-            for (int i = mid_y % Scale; i <= size.Height; i += Scale)
-                target.DrawLine(new RawVector2(0, i), new RawVector2(size.Width, i), PaintTools.bkgndPen, 1f);
+            if (PaintTools.bkgndSize != target.Size || PaintTools.bkgndScale != Scale)
+            {
+                PaintTools.bkgndGeometry.Dispose();
+                PathGeometry g = PaintTools.bkgndGeometry = new PathGeometry(PaintTools.factory);
+                PaintTools.bkgndSize = target.Size; PaintTools.bkgndScale = Scale;
+                GeometrySink s = g.Open();
+                for (int i = mid_x % Scale; i <= size.Width; i += Scale)
+                {
+                    s.BeginFigure(new RawVector2(i, 0), FigureBegin.Hollow);
+                    s.AddLine(new RawVector2(i, size.Height));
+                    s.EndFigure(FigureEnd.Open);
+                }
+                for (int i = mid_y % Scale; i <= size.Height; i += Scale)
+                {
+                    s.BeginFigure(new RawVector2(0, i), FigureBegin.Hollow);
+                    s.AddLine(new RawVector2(size.Width, i));
+                    s.EndFigure(FigureEnd.Open);
+                }
+                s.Close();
+            }
+            float width = .05f * Map.Scale;
+            target.DrawGeometry(PaintTools.bkgndGeometry, PaintTools.bkgndPen, width);
 
             //  Blocks
             Map.Draw(target);
 
+            //  Select
             {
                 int l = Math.Min(Map.MouseInfo.select_first.X, Map.MouseInfo.select_second.X);
                 int r = Math.Max(Map.MouseInfo.select_first.X, Map.MouseInfo.select_second.X);
@@ -152,8 +177,8 @@ namespace ConwayLifeGame
 
         private void MainPanel_MouseDown(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left) MainPanel_LButtonDown(e);
-            else if (e.Button == MouseButtons.Right) MainPanel_RButtonDown(e);
+            if ((e.Button & MouseButtons.Left) != 0) MainPanel_LButtonDown(new MouseEventArgs(MouseButtons.Left, 1, e.X, e.Y, 0));
+            if ((e.Button & MouseButtons.Right) != 0) MainPanel_RButtonDown(new MouseEventArgs(MouseButtons.Right, 1, e.X, e.Y, 0));
         }
 
         private void MainPanel_LButtonDown(MouseEventArgs e)
@@ -366,16 +391,12 @@ namespace ConwayLifeGame
                     }
                 case Keys.Oemplus:
                     {
-                        try { Program.control.Timer.Value -= 5; }
-                        catch (ArgumentOutOfRangeException)
-                        { Program.control.Timer.Value = Program.control.Timer.Minimum; }
+                        Program.control.Timer.Value = Program.control.Timer.Value - 5 >= Program.control.Timer.Minimum ? Program.control.Timer.Value - 5 : Program.control.Timer.Minimum;
                         break;
                     }
                 case Keys.OemMinus:
                     {
-                        try { Program.control.Timer.Value += 5; }
-                        catch (ArgumentOutOfRangeException)
-                        { Program.control.Timer.Value = Program.control.Timer.Maximum; }
+                        Program.control.Timer.Value = Program.control.Timer.Value + 5 <= Program.control.Timer.Maximum ? Program.control.Timer.Value + 5 : Program.control.Timer.Maximum;
                         break;
                     }
                 default:
@@ -541,12 +562,17 @@ namespace ConwayLifeGame
 
         private void MainPanel_SizeChanged(object sender, EventArgs e)
         {
-            PaintTools.renderTarget.Resize(new Size2(MainPanel.Width, MainPanel.Height));
+            PaintTools.renderTarget?.Resize(new Size2(Program.main.MainPanel.Width, Program.main.MainPanel.Height));
         }
 
         private void PaintTimer_Tick(object sender, EventArgs e)
         {
             MainPanel_Paint();
+        }
+
+        private void Main_Load(object sender, EventArgs e)
+        {
+            PaintTimer.Start();
         }
     }
 }

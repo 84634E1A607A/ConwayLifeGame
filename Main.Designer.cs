@@ -227,7 +227,6 @@ namespace ConwayLifeGame
             // 
             // PaintTimer
             // 
-            this.PaintTimer.Enabled = true;
             this.PaintTimer.Interval = 20;
             this.PaintTimer.Tick += new System.EventHandler(this.PaintTimer_Tick);
             // 
@@ -242,6 +241,7 @@ namespace ConwayLifeGame
             this.Name = "Main";
             this.Text = "Conway\'s Life Game";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Main_FormClosed);
+            this.Load += new System.EventHandler(this.Main_Load);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Main_KeyDown);
             this.MainFormMenu.ResumeLayout(false);
             this.MainFormMenu.PerformLayout();
