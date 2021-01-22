@@ -50,8 +50,12 @@ namespace ConwayLifeGame
             this.MainPanel = new System.Windows.Forms.Panel();
             this.ClacTimer = new System.Windows.Forms.Timer(this.components);
             this.PaintTimer = new System.Windows.Forms.Timer(this.components);
+            this.MainStatusStrip = new System.Windows.Forms.StatusStrip();
+            this.StatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.MainLabel = new System.Windows.Forms.ToolStripStatusLabel();
             EditSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.MainFormMenu.SuspendLayout();
+            this.MainStatusStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // EditSeparator1
@@ -208,12 +212,10 @@ namespace ConwayLifeGame
             // 
             // MainPanel
             // 
-            this.MainPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.MainPanel.Location = new System.Drawing.Point(0, 28);
+            this.MainPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.MainPanel.Location = new System.Drawing.Point(0, 25);
             this.MainPanel.Name = "MainPanel";
-            this.MainPanel.Size = new System.Drawing.Size(711, 393);
+            this.MainPanel.Size = new System.Drawing.Size(711, 395);
             this.MainPanel.TabIndex = 1;
             this.MainPanel.SizeChanged += new System.EventHandler(this.MainPanel_SizeChanged);
             this.MainPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainPanel_MouseDown);
@@ -230,11 +232,42 @@ namespace ConwayLifeGame
             this.PaintTimer.Interval = 20;
             this.PaintTimer.Tick += new System.EventHandler(this.PaintTimer_Tick);
             // 
+            // MainStatusStrip
+            // 
+            this.MainStatusStrip.AutoSize = false;
+            this.MainStatusStrip.Font = new System.Drawing.Font("Microsoft YaHei UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.MainStatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.StatusLabel,
+            this.MainLabel});
+            this.MainStatusStrip.Location = new System.Drawing.Point(0, 400);
+            this.MainStatusStrip.Name = "MainStatusStrip";
+            this.MainStatusStrip.Size = new System.Drawing.Size(711, 20);
+            this.MainStatusStrip.TabIndex = 2;
+            this.MainStatusStrip.Text = "statusStrip1";
+            // 
+            // StatusLabel
+            // 
+            this.StatusLabel.AutoSize = false;
+            this.StatusLabel.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.StatusLabel.Font = new System.Drawing.Font("Microsoft YaHei UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.StatusLabel.MergeAction = System.Windows.Forms.MergeAction.Replace;
+            this.StatusLabel.Name = "StatusLabel";
+            this.StatusLabel.Overflow = System.Windows.Forms.ToolStripItemOverflow.Never;
+            this.StatusLabel.Size = new System.Drawing.Size(60, 17);
+            this.StatusLabel.Text = "Paused";
+            // 
+            // MainLabel
+            // 
+            this.MainLabel.Name = "MainLabel";
+            this.MainLabel.Size = new System.Drawing.Size(39, 17);
+            this.MainLabel.Text = "Ready";
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(711, 420);
+            this.Controls.Add(this.MainStatusStrip);
             this.Controls.Add(this.MainPanel);
             this.Controls.Add(this.MainFormMenu);
             this.MainMenuStrip = this.MainFormMenu;
@@ -245,6 +278,8 @@ namespace ConwayLifeGame
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Main_KeyDown);
             this.MainFormMenu.ResumeLayout(false);
             this.MainFormMenu.PerformLayout();
+            this.MainStatusStrip.ResumeLayout(false);
+            this.MainStatusStrip.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -271,6 +306,9 @@ namespace ConwayLifeGame
         public System.Windows.Forms.Panel MainPanel;
         public System.Windows.Forms.Timer ClacTimer;
         private System.Windows.Forms.Timer PaintTimer;
+        public System.Windows.Forms.StatusStrip MainStatusStrip;
+        public System.Windows.Forms.ToolStripStatusLabel MainLabel;
+        public System.Windows.Forms.ToolStripStatusLabel StatusLabel;
     }
 }
 

@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using SharpDX;
 using SharpDX.Direct2D1;
 using SharpDX.Mathematics.Interop;
+using System.Threading.Tasks;
 
 namespace ConwayLifeGame
 {
@@ -39,6 +40,7 @@ namespace ConwayLifeGame
         {
             Program.control.Show();
             Program.control.Focus();
+            Program.SetMainLabel("Control window shown", 1000);
         }
 
         private void FileExit_Click(object sender, EventArgs e)
@@ -347,11 +349,13 @@ namespace ConwayLifeGame
                 case Keys.B:
                     {
                         Map.KeybdInputState = Map.KeyboardInputState.bulitin;
+                        Program.SetMainLabel("Press a key to select builtin...");
                         break;
                     }
                 case Keys.D:
                     {
                         Map.KeybdInputState = Map.KeyboardInputState.direction;
+                        Program.SetMainLabel("Press a key to select direction...");
                         break;
                     }
                 case Keys.C:
@@ -367,36 +371,43 @@ namespace ConwayLifeGame
                 case Keys.Delete:
                     {
                         Program.control.Reset_Click(null, null);
+                        Program.SetMainLabel("Map reset", 1500);
                         break;
                     }
                 case Keys.Left:
                     {
                         Program.control.XPivot.Value -= move_length / Map.Scale;
+                        Program.SetMainLabel("X pivot: " + Program.control.XPivot.Value, 500);
                         break;
                     }
                 case Keys.Right:
                     {
                         Program.control.XPivot.Value += move_length / Map.Scale;
+                        Program.SetMainLabel("X pivot: " + Program.control.XPivot.Value, 500);
                         break;
                     }
                 case Keys.Up:
                     {
                         Program.control.YPivot.Value -= move_length / Map.Scale;
+                        Program.SetMainLabel("Y pivot: " + Program.control.YPivot.Value, 500);
                         break;
                     }
                 case Keys.Down:
                     {
                         Program.control.YPivot.Value += move_length / Map.Scale;
+                        Program.SetMainLabel("Y pivot: " + Program.control.YPivot.Value, 500);
                         break;
                     }
                 case Keys.Oemplus:
                     {
                         Program.control.Timer.Value = Program.control.Timer.Value - 5 >= Program.control.Timer.Minimum ? Program.control.Timer.Value - 5 : Program.control.Timer.Minimum;
+                        Program.SetMainLabel("Timer: " + Program.control.Timer.Value, 500);
                         break;
                     }
                 case Keys.OemMinus:
                     {
                         Program.control.Timer.Value = Program.control.Timer.Value + 5 <= Program.control.Timer.Maximum ? Program.control.Timer.Value + 5 : Program.control.Timer.Maximum;
+                        Program.SetMainLabel("Timer: " + Program.control.Timer.Value, 500);
                         break;
                     }
                 default:
@@ -573,6 +584,7 @@ namespace ConwayLifeGame
         private void Main_Load(object sender, EventArgs e)
         {
             PaintTimer.Start();
+            Program.SetMainLabel("Initiallized", 2000);
         }
     }
 }

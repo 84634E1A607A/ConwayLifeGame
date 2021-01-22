@@ -49,8 +49,15 @@ namespace ConwayLifeGame
         {
             if (Map.MouseInfo.state == Map.MouseState.select && Map.Started == false) return;
             Map.Started = !Map.Started;
-            if (Map.Started) Program.main.ClacTimer.Start();
-            else Program.main.ClacTimer.Stop();
+            if (Map.Started)
+            {
+                Program.main.ClacTimer.Start();
+                Program.main.StatusLabel.Text = "Running";
+            }
+            else {
+                Program.main.ClacTimer.Stop();
+                Program.main.StatusLabel.Text = "Paused";
+            }
         }
 
         private void Control_FormClosing(object sender, FormClosingEventArgs e)

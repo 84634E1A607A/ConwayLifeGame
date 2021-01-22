@@ -13,6 +13,19 @@ namespace ConwayLifeGame
         /// </summary>
         public static Control control;
         public static Main main;
+
+        private static int mainLabelNo = 0; 
+        public static async Task SetMainLabel(string a = null, int millseconds = 0, string b = null)
+        {
+            int n = ++mainLabelNo;
+            if (a != null) main.MainLabel.Text = a;
+            if (millseconds != 0)
+            {
+                await Task.Delay(millseconds);
+                if (n == mainLabelNo) main.MainLabel.Text = b ?? "";
+            }
+        }
+
         [STAThread]
         static void Main()
         {
