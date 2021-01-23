@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Windows.Forms;
+using SharpDX;
+using SharpDX.Direct2D1;
+using SharpDX.Mathematics.Interop;
+using System.Threading.Tasks;
 
 namespace ConwayLifeGame
 {
@@ -15,29 +15,8 @@ namespace ConwayLifeGame
         public Main()
         {
             InitializeComponent();
-            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
             Map.Initialize();
             Program.control = new Control();
-
-            /*  PaintTools Init  */
-            {
-                PaintTools.bkgndPen = new Pen(Color.FromArgb(0xFF, 0x88, 0x88, 0x88), 1);
-                PaintTools.bkgndBitmap = new Bitmap(MainPictureBox.Width, MainPictureBox.Height);
-                PaintTools.mapPicBitmap = new Bitmap(MainPictureBox.Width, MainPictureBox.Height);
-                PaintTools.selectRectPen = new Pen(Color.FromArgb(0xAA, Color.DeepSkyBlue));
-                PaintTools.selectRectBrush = new SolidBrush(Color.FromArgb(0x55, Color.CadetBlue));
-                PaintTools.selectCellPen = new Pen(Color.DarkGreen, 3)
-                {
-                    DashStyle = System.Drawing.Drawing2D.DashStyle.Custom,
-                    DashPattern = new float[] { 1, 1 }
-                };
-                PaintTools.copyPen = new Pen(Color.DarkGreen, 3);
-                PaintTools.copyBrush = new SolidBrush(Color.FromArgb(0x33, Color.ForestGreen));
-                PaintTools.mainPicBitmap = new Bitmap(MainPictureBox.Width, MainPictureBox.Height);
-                PaintTools.graphics = Graphics.FromImage(PaintTools.mainPicBitmap);
-                PaintTools.paintThread = new Thread(new ThreadStart(PaintThread));
-                PaintTools.paintThread.Start();
-            }
         }
 
         private void HelpAbout_Click(object sender, EventArgs e)
@@ -60,137 +39,153 @@ namespace ConwayLifeGame
         private void EditShowWindow_Click(object sender, EventArgs e)
         {
             Program.control.Show();
+            Program.control.Focus();
+            Program.SetMainLabel("Control window shown", 1000);
         }
 
         private void FileExit_Click(object sender, EventArgs e)
         {
+            Program.control.Dispose();
             Application.Exit();
         }
 
         private static class PaintTools
         {
-            public static Bitmap mainPicBitmap;
+            public static Factory factory;
+            public static RenderTargetProperties renderProps;
+            public static HwndRenderTargetProperties hwndProps;
+            public static WindowRenderTarget renderTarget;
+            public static Brush bkgndPen;
+            public static Brush selectRectBrush;
+            public static Brush selectRectPen;
+            public static Brush selectCellPen;
+            public static Brush copyBrush;
+            public static Brush copyPen;
+            public static PathGeometry bkgndGeometry;
+            public static int bkgndScale;
+            public static Size2F bkgndSize;
 
-            public static Bitmap mapPicBitmap;
-
-            public static Graphics graphics;
-
-            public static Pen bkgndPen;
-            public static Bitmap bkgndBitmap;
-            public static int bkgndBitmapScale;
-
-            public static Pen selectRectPen;
-            public static SolidBrush selectRectBrush;
-
-            public static Pen selectCellPen;
-
-            public static Pen copyPen;
-            public static SolidBrush copyBrush;
-
-            public static Thread paintThread;
+            public static bool Init()
+            {
+                try {
+                    factory = new Factory(FactoryType.SingleThreaded);
+                    renderProps = new RenderTargetProperties()
+                    {
+                        PixelFormat = new PixelFormat { AlphaMode = AlphaMode.Ignore, Format = SharpDX.DXGI.Format.B8G8R8A8_UNorm },
+                        Usage = RenderTargetUsage.None,
+                        Type = RenderTargetType.Default
+                    };
+                    hwndProps = new HwndRenderTargetProperties()
+                    {
+                        Hwnd = Program.main.MainPanel.Handle,
+                        PixelSize = new Size2(Program.main.MainPanel.Width, Program.main.MainPanel.Height),
+                        PresentOptions = PresentOptions.None
+                    };
+                    renderTarget = new WindowRenderTarget(factory, renderProps, hwndProps)
+                    {
+                        AntialiasMode = AntialiasMode.PerPrimitive,
+                        DotsPerInch = new Size2F(96, 96)
+                    };
+                    bkgndPen = new SolidColorBrush(renderTarget, new RawColor4(0.3f, 0.3f, 0.3f, 1.0f));
+                    selectRectBrush = new SolidColorBrush(renderTarget, new RawColor4(0x00 / 256.0f, 0x97 / 256.0f, 0xA7 / 256.0f, 0.5f));
+                    selectRectPen = new SolidColorBrush(renderTarget, new RawColor4(0x1A / 256.0f, 0x23 / 256.0f, 0x7E / 256.0f, 1));
+                    selectCellPen = new SolidColorBrush(renderTarget, new RawColor4(0x1B / 256.0f, 0x5E / 256.0f, 0x20 / 256.0f, 1));
+                    copyBrush = new SolidColorBrush(renderTarget, new RawColor4(0x66 / 256.0f, 0xBB / 256.0f, 0x6A / 256.0f, 0.5f));
+                    copyPen = selectRectPen;
+                    bkgndGeometry = new PathGeometry(factory);
+                } catch { return false; }
+                return true;
+            }
         }
 
-        public static Bitmap MapBitmap { get { return PaintTools.mapPicBitmap; } set { PaintTools.mapPicBitmap = value; } }
-
-        private void MainPictureBox_Paint()
+        private void MainPanel_Paint()
         {
-            Size size = MainPictureBox.Size;
-            int mid_x = size.Width / 2, mid_y = size.Height / 2;
+            //  Init D2D
+            if (PaintTools.renderTarget == null)
+            { if (!PaintTools.Init()) return; }
 
-            // bkgnd Bitmap Init
-            if (PaintTools.bkgndBitmap.Size != size || PaintTools.bkgndBitmapScale != Map.Scale)
+            //  Begin draw
+            RenderTarget target = PaintTools.renderTarget;
+            target.BeginDraw();
+            target.Clear(new RawColor4(1, 1, 1, 1));
+
+            System.Drawing.Size size = MainPanel.Size;
+            int mid_x = size.Width / 2, mid_y = size.Height / 2, Scale = Map.Scale;
+
+            //  Lines
+            if (PaintTools.bkgndSize != target.Size || PaintTools.bkgndScale != Scale)
             {
-                PaintTools.bkgndBitmap.Dispose();
-                PaintTools.bkgndBitmap = new Bitmap(size.Width, size.Height);
-                PaintTools.bkgndBitmapScale = Map.Scale;
-                Graphics bitmapGraphics = Graphics.FromImage(PaintTools.bkgndBitmap);
-                bitmapGraphics.Clear(Color.White);
-                /*  lines in bkgndBitmap */
-                for (int i = mid_x % PaintTools.bkgndBitmapScale; i <= size.Width; i += PaintTools.bkgndBitmapScale)
-                    bitmapGraphics.DrawLine(PaintTools.bkgndPen, i, 0, i, size.Height);
-                for (int i = mid_y % PaintTools.bkgndBitmapScale; i <= size.Height; i += PaintTools.bkgndBitmapScale)
-                    bitmapGraphics.DrawLine(PaintTools.bkgndPen, 0, i, size.Width, i);
-                bitmapGraphics.Dispose();
+                PaintTools.bkgndGeometry.Dispose();
+                PathGeometry g = PaintTools.bkgndGeometry = new PathGeometry(PaintTools.factory);
+                PaintTools.bkgndSize = target.Size; PaintTools.bkgndScale = Scale;
+                GeometrySink s = g.Open();
+                for (int i = mid_x % Scale; i <= size.Width; i += Scale)
+                {
+                    s.BeginFigure(new RawVector2(i, 0), FigureBegin.Hollow);
+                    s.AddLine(new RawVector2(i, size.Height));
+                    s.EndFigure(FigureEnd.Open);
+                }
+                for (int i = mid_y % Scale; i <= size.Height; i += Scale)
+                {
+                    s.BeginFigure(new RawVector2(0, i), FigureBegin.Hollow);
+                    s.AddLine(new RawVector2(size.Width, i));
+                    s.EndFigure(FigureEnd.Open);
+                }
+                s.Close();
             }
+            float width = .05f * Map.Scale;
+            target.DrawGeometry(PaintTools.bkgndGeometry, PaintTools.bkgndPen, width);
 
-            // Main Bitmap Init
-            if (PaintTools.mainPicBitmap.Size != size)
-            {
-                PaintTools.graphics.Dispose();
-                PaintTools.mainPicBitmap.Dispose();
-                PaintTools.mainPicBitmap = new Bitmap(size.Width, size.Height);
-                PaintTools.graphics = Graphics.FromImage(PaintTools.mainPicBitmap);
-            }
+            //  Blocks
+            Map.Draw(target);
 
-            /*  lines   */
-            PaintTools.graphics.DrawImage(PaintTools.bkgndBitmap, 0, 0);
-
-            /*  blocks  */
-            PaintTools.graphics.DrawImage(PaintTools.mapPicBitmap, 0, 0);
-
-            /*  select  */
+            //  Select
             {
                 int l = Math.Min(Map.MouseInfo.select_first.X, Map.MouseInfo.select_second.X);
                 int r = Math.Max(Map.MouseInfo.select_first.X, Map.MouseInfo.select_second.X);
                 int t = Math.Min(Map.MouseInfo.select_first.Y, Map.MouseInfo.select_second.Y);
                 int b = Math.Max(Map.MouseInfo.select_first.Y, Map.MouseInfo.select_second.Y);
-                /*  select (rect)  */
+                //  Select (rect)  
                 if (r - l != 0 || b - t != 0)
                 {
-                    Rectangle rect = new Rectangle(l, t, r - l, b - t);
-                    PaintTools.graphics.FillRectangle(PaintTools.selectRectBrush, rect);
-                    PaintTools.graphics.DrawRectangle(PaintTools.selectRectPen, rect);
+                    RawRectangleF rect = new RawRectangleF(l, t, r, b);
+                    target.FillRectangle(rect, PaintTools.selectRectBrush);
+                    target.DrawRectangle(rect, PaintTools.selectRectPen);
                 }
-                /*  select (cell)  */
+                //  Select (cell)  
                 else if (!Map.MouseInfo.select_first.IsEmpty)
                 {
                     int rl = (l - mid_x % Map.Scale) / Map.Scale * Map.Scale + mid_x % Map.Scale;
                     int rt = (t - mid_y % Map.Scale) / Map.Scale * Map.Scale + mid_y % Map.Scale;
-                    Rectangle rect = new Rectangle(rl, rt, Map.Scale, Map.Scale);
-                    PaintTools.graphics.DrawRectangle(PaintTools.selectCellPen, rect);
+                    RawRectangleF rect = new RawRectangleF(rl, rt, rl + Map.Scale, rt + Map.Scale);
+                    target.DrawRectangle(rect, PaintTools.selectCellPen);
                 }
             }
 
-            /*  copy  */
+            //  Copy  
             if (Map.CopyInfo.state)
             {
                 int l = Math.Min(Map.CopyInfo.first.X, Map.CopyInfo.second.X);
                 int r = Math.Max(Map.CopyInfo.first.X, Map.CopyInfo.second.X);
                 int t = Math.Min(Map.CopyInfo.first.Y, Map.CopyInfo.second.Y);
                 int b = Math.Max(Map.CopyInfo.first.Y, Map.CopyInfo.second.Y);
-                Rectangle rect = new Rectangle((l - Map.XPivot) * Map.Scale + mid_x, (t - Map.YPivot) * Map.Scale + mid_y, (r - l + 1) * Map.Scale, (b - t + 1) * Map.Scale);
-                PaintTools.graphics.DrawRectangle(PaintTools.copyPen, rect);
-                PaintTools.graphics.FillRectangle(PaintTools.copyBrush, rect);
+                RawRectangleF rect = new RawRectangleF((l - Map.XPivot) * Map.Scale + mid_x, (t - Map.YPivot) * Map.Scale + mid_y, (r - Map.XPivot + 1) * Map.Scale + mid_x, (b - Map.YPivot + 1) * Map.Scale + mid_y);
+                target.DrawRectangle(rect, PaintTools.copyPen);
+                target.FillRectangle(rect, PaintTools.copyBrush);
             }
 
-            MainPictureBox.Image = PaintTools.mainPicBitmap;
+            target.EndDraw();
         }
 
-        private void PaintThread()
+        private void MainPanel_MouseDown(object sender, MouseEventArgs e)
         {
-            try
-            {
-                while (true)
-                {
-                    Thread.Sleep(5);
-                    try { MainPictureBox_Paint(); }
-                    catch (InvalidOperationException) { Thread.Sleep(20); }
-                }
-            }
-            catch (ArgumentException)
-            { return; }
+            if ((e.Button & MouseButtons.Left) != 0) MainPanel_LButtonDown(new MouseEventArgs(MouseButtons.Left, 1, e.X, e.Y, 0));
+            if ((e.Button & MouseButtons.Right) != 0) MainPanel_RButtonDown(new MouseEventArgs(MouseButtons.Right, 1, e.X, e.Y, 0));
         }
 
-        private void MainPictureBox_MouseDown(object sender, MouseEventArgs e)
+        private void MainPanel_LButtonDown(MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left) MainPictureBox_LButtonDown(e);
-            else if (e.Button == MouseButtons.Right) MainPictureBox_RButtonDown(e);
-            Map.Draw();
-        }
-
-        private void MainPictureBox_LButtonDown(MouseEventArgs e)
-        {
-            int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
+            int mid_x = MainPanel.Width / 2, mid_y = MainPanel.Height / 2;
             int xc = (e.X - mid_x + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.XPivot;
             int yc = (e.Y - mid_y + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.YPivot;
             switch (Map.MouseInfo.state)
@@ -203,115 +198,110 @@ namespace ConwayLifeGame
                 case Map.MouseState.pen:
                     {
                         Map.Change(xc, yc);
-                        Map.MouseInfo.previous = new Point(xc, yc);
+                        Map.MouseInfo.previous = new System.Drawing.Point(xc, yc);
                         break;
                     }
                 case Map.MouseState.eraser:
                     {
-                        Map.MouseInfo.previous = new Point(xc, yc);
+                        Map.MouseInfo.previous = new System.Drawing.Point(xc, yc);
                         Map.Change(xc, yc, 2);
                         break;
                     }
                 case Map.MouseState.drag:
                     {
-                        Map.MouseInfo.previous = new Point(xc, yc);
+                        Map.MouseInfo.previous = new System.Drawing.Point(xc, yc);
                         break;
                     }
                 case Map.MouseState.select:
                     {
                         if (Map.Started) Program.control.StartStop_Click(null, null);
-                        Map.MouseInfo.select_first = new Point(e.X, e.Y);
-                        Map.MouseInfo.select_second = new Point(e.X, e.Y);
+                        Map.MouseInfo.select_first = new System.Drawing.Point(e.X, e.Y);
+                        Map.MouseInfo.select_second = new System.Drawing.Point(e.X, e.Y);
                         break;
                     }
             }
-            Map.Draw();
         }
 
-        private void MainPictureBox_RButtonDown(MouseEventArgs e)
+        private void MainPanel_RButtonDown(MouseEventArgs e)
         {
-            int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
+            int mid_x = MainPanel.Width / 2, mid_y = MainPanel.Height / 2;
             int xc = (e.X - mid_x + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.XPivot;
             int yc = (e.Y - mid_y + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.YPivot;
             Map.AddPreset(xc, yc);
-            Map.Draw();
         }
 
-        private void MainPictureBox_MouseMove(object sender, MouseEventArgs e)
+        private void MainPanel_MouseMove(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left && Map.MouseInfo.state != Map.MouseState.click)
             {
-                int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
+                int mid_x = MainPanel.Width / 2, mid_y = MainPanel.Height / 2;
                 int xc = (int)((e.X - mid_x + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.XPivot);
                 int yc = (int)((e.Y - mid_y + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.YPivot);
-                Point pcur = new Point(xc, yc);
+                System.Drawing.Point pcur = new System.Drawing.Point(xc, yc);
                 switch (Map.MouseInfo.state)
                 {
                     case Map.MouseState.drag:
                         {
                             Program.control.XPivot.Value = Map.MouseInfo.previous.X - xc + Map.XPivot;
                             Program.control.YPivot.Value = Map.MouseInfo.previous.Y - yc + Map.YPivot;
-                            Map.Draw();
                             break;
                         }
                     case Map.MouseState.pen:
                         {
                             {
-                                Point s = (pcur.X <= Map.MouseInfo.previous.X) ? pcur : Map.MouseInfo.previous, t = (s == pcur) ? Map.MouseInfo.previous : pcur;
+                                System.Drawing.Point s = (pcur.X <= Map.MouseInfo.previous.X) ? pcur : Map.MouseInfo.previous, t = (s == pcur) ? Map.MouseInfo.previous : pcur;
                                 double k = ((double)t.Y - s.Y) / ((double)t.X - s.X);
                                 for (int i = s.X; i <= t.X; i++)
                                     Map.Change(i, (int)(s.Y + ((double)i - s.X) * k), 1);
                             }
                             {
-                                Point s = (pcur.Y <= Map.MouseInfo.previous.Y) ? pcur : Map.MouseInfo.previous, t = (s == pcur) ? Map.MouseInfo.previous : pcur;
+                                System.Drawing.Point s = (pcur.Y <= Map.MouseInfo.previous.Y) ? pcur : Map.MouseInfo.previous, t = (s == pcur) ? Map.MouseInfo.previous : pcur;
                                 double k = ((double)t.X - s.X) / ((double)t.Y - s.Y);
                                 for (int i = s.Y; i <= t.Y; i++)
                                     Map.Change((int)(s.X + ((double)i - s.Y) * k), i, 1);
                             }
                             Map.MouseInfo.previous = pcur;
-                            Map.Draw();
                             break;
                         }
                     case Map.MouseState.eraser:
                         {
                             {
-                                Point s = (pcur.X <= Map.MouseInfo.previous.X) ? pcur : Map.MouseInfo.previous, t = (s == pcur) ? Map.MouseInfo.previous : pcur;
+                                System.Drawing.Point s = (pcur.X <= Map.MouseInfo.previous.X) ? pcur : Map.MouseInfo.previous, t = (s == pcur) ? Map.MouseInfo.previous : pcur;
                                 double k = ((double)t.Y - s.Y) / ((double)t.X - s.X);
                                 for (int i = s.X; i <= t.X; i++)
                                     Map.Change(i, (int)(s.Y + ((double)i - s.X) * k), 2);
                             }
                             {
-                                Point s = (pcur.Y <= Map.MouseInfo.previous.Y) ? pcur : Map.MouseInfo.previous, t = (s == pcur) ? Map.MouseInfo.previous : pcur;
+                                System.Drawing.Point s = (pcur.Y <= Map.MouseInfo.previous.Y) ? pcur : Map.MouseInfo.previous, t = (s == pcur) ? Map.MouseInfo.previous : pcur;
                                 double k = ((double)t.X - s.X) / ((double)t.Y - s.Y);
                                 for (int i = s.Y; i <= t.Y; i++)
                                     Map.Change((int)(s.X + ((double)i - s.Y) * k), i, 2);
                             }
                             Map.MouseInfo.previous = pcur;
-                            Map.Draw();
                             break;
                         }
                     case Map.MouseState.select:
                         {
-                            Map.MouseInfo.select_second = new Point(e.X, e.Y);
+                            Map.MouseInfo.select_second = new System.Drawing.Point(e.X, e.Y);
                             break;
                         }
                 }
             }
         }
 
-        private void MainPictureBox_MouseUp(object sender, MouseEventArgs e)
+        private void MainPanel_MouseUp(object sender, MouseEventArgs e)
         {
             if (Map.AddRgnInfo.state != Map.AddRegionState.normal)
             {
-                int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
+                int mid_x = MainPanel.Width / 2, mid_y = MainPanel.Height / 2;
                 int xc = (int)((Map.MouseInfo.select_first.X - mid_x + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.XPivot);
                 int yc = (int)((Map.MouseInfo.select_first.Y - mid_y + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.YPivot);
-                Point p1 = new Point(xc, yc);
+                System.Drawing.Point p1 = new System.Drawing.Point(xc, yc);
                 xc = (int)((Map.MouseInfo.select_second.X - mid_x + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.XPivot);
                 yc = (int)((Map.MouseInfo.select_second.Y - mid_y + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.YPivot);
-                Point p2 = new Point(xc, yc);
+                System.Drawing.Point p2 = new System.Drawing.Point(xc, yc);
                 Map.AddDeleteRegion(p1, p2);
-                Map.MouseInfo.select_first = Map.MouseInfo.select_second = new Point();
+                Map.MouseInfo.select_first = Map.MouseInfo.select_second = new System.Drawing.Point();
                 Map.AddRgnInfo.state = Map.AddRegionState.normal;
                 
                 switch (Map.AddRgnInfo.lastMouseState)
@@ -331,10 +321,9 @@ namespace ConwayLifeGame
                     default: break;
                 }
             }
-            Map.Draw();
         }
 
-        private void MainPictureBox_MouseWheel(object sender, MouseEventArgs e)
+        private void MainPanel_MouseWheel(object sender, MouseEventArgs e)
         {
             int i = (int)Program.control.MapScale.Value;
             if (!( i <= 2) || !(e.Delta < 0))
@@ -344,7 +333,6 @@ namespace ConwayLifeGame
                 if (i > 999) i = 999;
             }
             Program.control.MapScale.Value = i;
-            Map.Draw();
         }
 
         private void ClacTimer_Tick(object sender, EventArgs e)
@@ -361,11 +349,13 @@ namespace ConwayLifeGame
                 case Keys.B:
                     {
                         Map.KeybdInputState = Map.KeyboardInputState.bulitin;
+                        Program.SetMainLabel("Press a key to select builtin...");
                         break;
                     }
                 case Keys.D:
                     {
                         Map.KeybdInputState = Map.KeyboardInputState.direction;
+                        Program.SetMainLabel("Press a key to select direction...");
                         break;
                     }
                 case Keys.C:
@@ -381,40 +371,43 @@ namespace ConwayLifeGame
                 case Keys.Delete:
                     {
                         Program.control.Reset_Click(null, null);
+                        Program.SetMainLabel("Map reset", 1500);
                         break;
                     }
                 case Keys.Left:
                     {
                         Program.control.XPivot.Value -= move_length / Map.Scale;
+                        Program.SetMainLabel("X pivot: " + Program.control.XPivot.Value, 500);
                         break;
                     }
                 case Keys.Right:
                     {
                         Program.control.XPivot.Value += move_length / Map.Scale;
+                        Program.SetMainLabel("X pivot: " + Program.control.XPivot.Value, 500);
                         break;
                     }
                 case Keys.Up:
                     {
                         Program.control.YPivot.Value -= move_length / Map.Scale;
+                        Program.SetMainLabel("Y pivot: " + Program.control.YPivot.Value, 500);
                         break;
                     }
                 case Keys.Down:
                     {
                         Program.control.YPivot.Value += move_length / Map.Scale;
+                        Program.SetMainLabel("Y pivot: " + Program.control.YPivot.Value, 500);
                         break;
                     }
                 case Keys.Oemplus:
                     {
-                        try { Program.control.Timer.Value -= 5; }
-                        catch (ArgumentOutOfRangeException)
-                        { Program.control.Timer.Value = Program.control.Timer.Minimum; }
+                        Program.control.Timer.Value = Program.control.Timer.Value - 5 >= Program.control.Timer.Minimum ? Program.control.Timer.Value - 5 : Program.control.Timer.Minimum;
+                        Program.SetMainLabel("Timer: " + Program.control.Timer.Value, 500);
                         break;
                     }
                 case Keys.OemMinus:
                     {
-                        try { Program.control.Timer.Value += 5; }
-                        catch (ArgumentOutOfRangeException)
-                        { Program.control.Timer.Value = Program.control.Timer.Maximum; }
+                        Program.control.Timer.Value = Program.control.Timer.Value + 5 <= Program.control.Timer.Maximum ? Program.control.Timer.Value + 5 : Program.control.Timer.Maximum;
+                        Program.SetMainLabel("Timer: " + Program.control.Timer.Value, 500);
                         break;
                     }
                 default:
@@ -440,12 +433,11 @@ namespace ConwayLifeGame
                         break;
                     }
             }
-            Map.Draw();
             e.Handled = true;
         }
 
-        private void Main_FormClosed(object sender, FormClosedEventArgs e)
-        {
+        private void Main_FormClosed(object sender, FormClosedEventArgs e) { }
+        /*{
             PaintTools.graphics.Dispose();
             PaintTools.bkgndPen.Dispose();
             PaintTools.bkgndBitmap.Dispose();
@@ -456,7 +448,7 @@ namespace ConwayLifeGame
             PaintTools.selectCellPen.Dispose();
             PaintTools.selectRectPen.Dispose();
             PaintTools.selectRectBrush.Dispose();
-        }
+        }*/
 
         private void EditCreateRandom_Click(object sender, EventArgs e)
         {
@@ -468,18 +460,17 @@ namespace ConwayLifeGame
             }
             else
             {
-                int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
+                int mid_x = MainPanel.Width / 2, mid_y = MainPanel.Height / 2;
                 int xc = (int)((Map.MouseInfo.select_first.X - mid_x + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.XPivot);
                 int yc = (int)((Map.MouseInfo.select_first.Y - mid_y + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.YPivot);
-                Point p1 = new Point(xc, yc);
+                System.Drawing.Point p1 = new System.Drawing.Point(xc, yc);
                 xc = (int)((Map.MouseInfo.select_second.X - mid_x + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.XPivot);
                 yc = (int)((Map.MouseInfo.select_second.Y - mid_y + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.YPivot);
-                Point p2 = new Point(xc, yc);
+                System.Drawing.Point p2 = new System.Drawing.Point(xc, yc);
                 Map.AddDeleteRegion(p1, p2);
-                Map.MouseInfo.select_first = Map.MouseInfo.select_second = new Point();
+                Map.MouseInfo.select_first = Map.MouseInfo.select_second = new System.Drawing.Point();
                 Map.AddRgnInfo.state = Map.AddRegionState.normal;
             }
-            Map.Draw();
         }
 
         private void EditCreateSolid_Click(object sender, EventArgs e)
@@ -492,18 +483,17 @@ namespace ConwayLifeGame
             }
             else
             {
-                int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
+                int mid_x = MainPanel.Width / 2, mid_y = MainPanel.Height / 2;
                 int xc = (int)((Map.MouseInfo.select_first.X - mid_x + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.XPivot);
                 int yc = (int)((Map.MouseInfo.select_first.Y - mid_y + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.YPivot);
-                Point p1 = new Point(xc, yc);
+                System.Drawing.Point p1 = new System.Drawing.Point(xc, yc);
                 xc = (int)((Map.MouseInfo.select_second.X - mid_x + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.XPivot);
                 yc = (int)((Map.MouseInfo.select_second.Y - mid_y + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.YPivot);
-                Point p2 = new Point(xc, yc);
+                System.Drawing.Point p2 = new System.Drawing.Point(xc, yc);
                 Map.AddDeleteRegion(p1, p2);
-                Map.MouseInfo.select_first = Map.MouseInfo.select_second = new Point();
+                Map.MouseInfo.select_first = Map.MouseInfo.select_second = new System.Drawing.Point();
                 Map.AddRgnInfo.state = Map.AddRegionState.normal;
             }
-            Map.Draw();
         }
 
         private void EditDeleteRegion_Click(object sender, EventArgs e)
@@ -516,18 +506,17 @@ namespace ConwayLifeGame
             }
             else
             {
-                int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
+                int mid_x = MainPanel.Width / 2, mid_y = MainPanel.Height / 2;
                 int xc = (int)((Map.MouseInfo.select_first.X - mid_x + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.XPivot);
                 int yc = (int)((Map.MouseInfo.select_first.Y - mid_y + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.YPivot);
-                Point p1 = new Point(xc, yc);
+                System.Drawing.Point p1 = new System.Drawing.Point(xc, yc);
                 xc = (int)((Map.MouseInfo.select_second.X - mid_x + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.XPivot);
                 yc = (int)((Map.MouseInfo.select_second.Y - mid_y + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.YPivot);
-                Point p2 = new Point(xc, yc);
+                System.Drawing.Point p2 = new System.Drawing.Point(xc, yc);
                 Map.AddDeleteRegion(p1, p2);
-                Map.MouseInfo.select_first = Map.MouseInfo.select_second = new Point();
+                Map.MouseInfo.select_first = Map.MouseInfo.select_second = new System.Drawing.Point();
                 Map.AddRgnInfo.state = Map.AddRegionState.normal;
             }
-            Map.Draw();
         }
 
         private void FileOpen_Click(object sender, EventArgs e)
@@ -544,7 +533,6 @@ namespace ConwayLifeGame
                 if (fname.EndsWith(".lfs")) Map.LoadLFS(fname);
                 if (fname.EndsWith(".lf")) Map.LoadLF(fname);
             }
-            Map.Draw();
         }
 
         private void FileSave_Click(object sender, EventArgs e)
@@ -556,38 +544,47 @@ namespace ConwayLifeGame
             };
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
                 Map.DumpLFS(saveFileDialog.FileName);
-            Map.Draw();
         }
 
         private void EditCopy_Click(object sender, EventArgs e)
         {
             if (Map.MouseInfo.select_first.IsEmpty && Map.MouseInfo.select_second.IsEmpty) return;
-            int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
+            int mid_x = MainPanel.Width / 2, mid_y = MainPanel.Height / 2;
             int xc = (int)((Map.MouseInfo.select_first.X - mid_x + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.XPivot);
             int yc = (int)((Map.MouseInfo.select_first.Y - mid_y + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.YPivot);
-            Map.CopyInfo.first = new Point(xc, yc);
+            Map.CopyInfo.first = new System.Drawing.Point(xc, yc);
             xc = (int)((Map.MouseInfo.select_second.X - mid_x + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.XPivot);
             yc = (int)((Map.MouseInfo.select_second.Y - mid_y + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.YPivot);
-            Map.CopyInfo.second = new Point(xc, yc);
+            Map.CopyInfo.second = new System.Drawing.Point(xc, yc);
             Map.CopyInfo.state = true;
-            Map.MouseInfo.select_first = Map.MouseInfo.select_second = new Point();
+            Map.MouseInfo.select_first = Map.MouseInfo.select_second = new System.Drawing.Point();
         }
 
         private void EditPaste_Click(object sender, EventArgs e)
         {
             if (!Map.CopyInfo.state) return;
             if (Map.MouseInfo.select_first != Map.MouseInfo.select_second) return; 
-            int mid_x = MainPictureBox.Width / 2, mid_y = MainPictureBox.Height / 2;
+            int mid_x = MainPanel.Width / 2, mid_y = MainPanel.Height / 2;
             int xc = (int)((Map.MouseInfo.select_first.X - mid_x + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.XPivot);
             int yc = (int)((Map.MouseInfo.select_first.Y - mid_y + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.YPivot);
             Map.Paste(xc, yc);
             Map.CopyInfo.state = false;
-            Map.Draw();
         }
 
-        private void MainPictureBox_SizeChanged(object sender, EventArgs e)
+        private void MainPanel_SizeChanged(object sender, EventArgs e)
         {
-            Map.Draw();
+            PaintTools.renderTarget?.Resize(new Size2(Program.main.MainPanel.Width, Program.main.MainPanel.Height));
+        }
+
+        private void PaintTimer_Tick(object sender, EventArgs e)
+        {
+            MainPanel_Paint();
+        }
+
+        private void Main_Load(object sender, EventArgs e)
+        {
+            PaintTimer.Start();
+            Program.SetMainLabel("Initiallized", 2000);
         }
     }
 }
