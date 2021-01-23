@@ -18,9 +18,9 @@ namespace ConwayLifeGame
             size = PreviewPictureBox.Size;
             previewBitmap = new Bitmap(size.Width, size.Height);
             brush = new SolidBrush(Color.Black);
-            rbrush = new SolidBrush(Color.Red);
+            rbrush = new SolidBrush(Color.FromArgb(0x80, Color.Red));
             graphics = Graphics.FromImage(previewBitmap);
-            PresetSelect.Maximum = Map.PresetNum - 1;
+            PresetSelect.Maximum = Map.PresetNum;
             PreviewPictureBox_Paint();
             MouseStateClick.Checked = true;
         }
@@ -34,18 +34,54 @@ namespace ConwayLifeGame
         {
             Map.Preset preset_info = Map.GetBulitinInfo();
             graphics.Clear(BackColor);
-            int xScale = size.Width / preset_info.width;
-            int yScale = size.Height / preset_info.height;
-            int scale = xScale < yScale ? xScale : yScale;
-            int x_start = (size.Width - preset_info.width * scale) / 2;
-            int y_start = (size.Height - preset_info.height * scale) / 2;
-            graphics.TranslateTransform(x_start, y_start);
-            foreach (Point point in preset_info.points)
+            int scale, xStart, yStart;
+            if (Map.SelectedDirection <= 4)
             {
-                Rectangle r = new Rectangle(scale * point.X, scale * point.Y, scale, scale);
-                graphics.FillRectangle(brush, r);
+                scale = Math.Min(size.Width / preset_info.width, size.Height / preset_info.height);
+                xStart = (size.Width - preset_info.width * scale) / 2; yStart = (size.Height - preset_info.height * scale) / 2;
             }
-            graphics.FillRectangle(rbrush, new Rectangle(0, 0, scale, scale));
+            else
+            {
+                scale = Math.Min(size.Width / preset_info.height, size.Height / preset_info.width);
+                xStart = (size.Width - preset_info.height * scale) / 2; yStart = (size.Height - preset_info.width * scale) / 2;
+            }
+            graphics.TranslateTransform(xStart, yStart);
+            switch (Map.SelectedDirection)
+            {
+                case 1:
+                    foreach (Point point in preset_info.points)
+                        graphics.FillRectangle(brush, new Rectangle(scale * point.X, scale * point.Y, scale, scale));
+                    break;
+                case 2:
+                    foreach (Point point in preset_info.points)
+                        graphics.FillRectangle(brush, new Rectangle(scale * point.X, scale * (preset_info.height - 1 - point.Y), scale, scale));
+                    break;
+                case 3:
+                    foreach (Point point in preset_info.points)
+                        graphics.FillRectangle(brush, new Rectangle(scale * (preset_info.width - 1 - point.X), scale * point.Y, scale, scale));
+                    break;
+                case 4:
+                    foreach (Point point in preset_info.points)
+                        graphics.FillRectangle(brush, new Rectangle(scale * (preset_info.width - 1 - point.X), scale * (preset_info.height - 1 - point.Y), scale, scale));
+                    break;
+                case 5:
+                    foreach (Point point in preset_info.points)
+                        graphics.FillRectangle(brush, new Rectangle(scale * point.Y, scale * point.X, scale, scale));
+                    break;
+                case 6:
+                    foreach (Point point in preset_info.points)
+                        graphics.FillRectangle(brush, new Rectangle(scale * point.Y, scale * (preset_info.width - 1 - point.X), scale, scale));
+                    break;
+                case 7:
+                    foreach (Point point in preset_info.points)
+                        graphics.FillRectangle(brush, new Rectangle(scale * (preset_info.height - 1 - point.Y), scale * point.X, scale, scale));
+                    break;
+                case 8:
+                    foreach (Point point in preset_info.points)
+                        graphics.FillRectangle(brush, new Rectangle(scale * (preset_info.height - 1 - point.Y), scale * (preset_info.width - 1 - point.X), scale, scale));
+                    break;
+            }
+            graphics.FillRectangle(rbrush, new Rectangle((int)(scale * 0.1), (int)(scale * 0.1), (int)(scale * 0.8), (int)(scale * 0.8)));
             graphics.ResetTransform();
             PreviewPictureBox.Image = previewBitmap;
         }
@@ -96,6 +132,7 @@ namespace ConwayLifeGame
         private void DirectionSelect_ValueChanged(object sender, EventArgs e)
         {
             Map.SelectedDirection = (int)DirectionSelect.Value;
+            PreviewPictureBox_Paint();
             Program.SetMainLabel("Selected direction: " + Map.SelectedDirection, 1000);
         }
 

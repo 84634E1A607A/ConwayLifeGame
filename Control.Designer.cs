@@ -102,13 +102,23 @@ namespace ConwayLifeGame
             // 
             this.DirectionSelect.Location = new System.Drawing.Point(158, 19);
             this.DirectionSelect.Maximum = new decimal(new int[] {
-            7,
+            8,
+            0,
+            0,
+            0});
+            this.DirectionSelect.Minimum = new decimal(new int[] {
+            1,
             0,
             0,
             0});
             this.DirectionSelect.Name = "DirectionSelect";
             this.DirectionSelect.Size = new System.Drawing.Size(39, 23);
             this.DirectionSelect.TabIndex = 1;
+            this.DirectionSelect.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
             this.DirectionSelect.ValueChanged += new System.EventHandler(this.DirectionSelect_ValueChanged);
             // 
             // label2
@@ -124,13 +134,23 @@ namespace ConwayLifeGame
             // 
             this.PresetSelect.Location = new System.Drawing.Point(53, 19);
             this.PresetSelect.Maximum = new decimal(new int[] {
-            5,
+            10,
+            0,
+            0,
+            0});
+            this.PresetSelect.Minimum = new decimal(new int[] {
+            1,
             0,
             0,
             0});
             this.PresetSelect.Name = "PresetSelect";
             this.PresetSelect.Size = new System.Drawing.Size(39, 23);
             this.PresetSelect.TabIndex = 0;
+            this.PresetSelect.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
             this.PresetSelect.ValueChanged += new System.EventHandler(this.PresetSelect_ValueChanged);
             // 
             // label1

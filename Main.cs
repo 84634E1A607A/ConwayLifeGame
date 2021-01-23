@@ -368,7 +368,6 @@ namespace ConwayLifeGame
                 case Keys.Delete:
                     {
                         Program.control.Reset_Click(null, null);
-                        Program.SetMainLabel("Map reset", 1500);
                         break;
                     }
                 case Keys.Left:

@@ -100,7 +100,7 @@ namespace ConwayLifeGame
         }
         public static CopyInformation CopyInfo;
 
-        private static int _selectedPreset, _selectedDirection, _xPivot = 0x08000000, _yPivot = 0x08000000, _timer = 100, _scale = 10;
+        private static int _selectedPreset = 1, _selectedDirection = 1, _xPivot = 0x08000000, _yPivot = 0x08000000, _timer = 100, _scale = 10;
         public static int SelectedPreset { get => _selectedPreset; set => _selectedPreset = value; }
         public static int SelectedDirection { get => _selectedDirection; set => _selectedDirection = value; }
         public static int XPivot { get => _xPivot; set => _xPivot = value; }
@@ -366,32 +366,32 @@ namespace ConwayLifeGame
 
         public static void AddPreset(int xpos, int ypos)
         {
-            byte s = (byte)presets[_selectedPreset].points.Length, l = (byte)(presets[_selectedPreset].width - 1), h = (byte)(presets[_selectedPreset].height - 1);
-            System.Drawing.Point[] cur = presets[_selectedPreset].points;
+            byte s = (byte)presets[_selectedPreset - 1].points.Length, l = (byte)(presets[_selectedPreset - 1].width - 1), h = (byte)(presets[_selectedPreset - 1].height - 1);
+            System.Drawing.Point[] cur = presets[_selectedPreset - 1].points;
             switch (_selectedDirection)
             {
-                case 0:
+                case 1:
                     for (byte i = 0; i < s; i++) Change(xpos + cur[i].X, ypos + cur[i].Y, 1);
                     break;
-                case 1:
+                case 2:
                     for (byte i = 0; i < s; i++) Change(xpos + cur[i].X, ypos + h - cur[i].Y, 1);
                     break;
-                case 2:
+                case 3:
                     for (byte i = 0; i < s; i++) Change(xpos + l - cur[i].X, ypos + cur[i].Y, 1);
                     break;
-                case 3:
+                case 4:
                     for (byte i = 0; i < s; i++) Change(xpos + l - cur[i].X, ypos + h - cur[i].Y, 1);
                     break;
-                case 4:
+                case 5:
                     for (byte i = 0; i < s; i++) Change(xpos + cur[i].Y, ypos + cur[i].X, 1);
                     break;
-                case 5:
+                case 6:
                     for (byte i = 0; i < s; i++) Change(xpos + cur[i].Y, ypos + l - cur[i].X, 1);
                     break;
-                case 6:
+                case 7:
                     for (byte i = 0; i < s; i++) Change(xpos + h - cur[i].Y, ypos + cur[i].X, 1);
                     break;
-                case 7:
+                case 8:
                     for (byte i = 0; i < s; i++) Change(xpos + h - cur[i].Y, ypos + l - cur[i].X, 1);
                     break;
             }
@@ -433,7 +433,7 @@ namespace ConwayLifeGame
 
         public static Preset GetBulitinInfo()
         {
-            try { return presets[_selectedPreset]; }
+            try { return presets[_selectedPreset - 1]; }
             catch (Exception) { return presets[0]; }
         }
 
