@@ -63,7 +63,7 @@ namespace ConwayLifeGame
         public enum KeyboardInputState
         {
             normal,
-            bulitin,
+            preset,
             direction
         }
         public static KeyboardInputState KeybdInputState { get; set; }
@@ -224,31 +224,19 @@ namespace ConwayLifeGame
         {
             // Stop
             Program.control.Reset_Click(null, null);
-            FileStream fs = null;
-            try
+            FileStream fs = new FileStream(f, FileMode.Open);
+            BinaryReader reader = new BinaryReader(fs);
+            _xPivot = reader.ReadInt32();
+            _yPivot = reader.ReadInt32();
+            if (reader.ReadUInt32() != 0xffffffff)
+                throw new IOException("Unexpected sign of file");
+            while (true)
             {
-                fs = new FileStream(f, FileMode.Open);
-                BinaryReader reader = new BinaryReader(fs);
-                _xPivot = reader.ReadInt32();
-                _yPivot = reader.ReadInt32();
-                if (reader.ReadUInt32() != 0xffffffff)
-                {
-                    Program.control.Reset_Click(null, null);
-                    throw new Exception("Bad file! Map reset");
-                }
-                while (true)
-                {
-                    uint x, y;
-                    x = reader.ReadUInt32();
-                    y = reader.ReadUInt32();
-                    if (x == 0xffffffff && y == 0xfffffffd) break;
-                    Change((int)x, (int)y);
-                }
-            }
-            catch (Exception e)
-            {
-                System.Windows.Forms.MessageBox.Show(e.Message, "Error", System.Windows.Forms.MessageBoxButtons.OK);
-                if (fs != null && fs.CanRead) fs.Close();
+                uint x, y;
+                x = reader.ReadUInt32();
+                y = reader.ReadUInt32();
+                if (x == 0xffffffff && y == 0xfffffffd) break;
+                Change((int)x, (int)y);
             }
         }
 

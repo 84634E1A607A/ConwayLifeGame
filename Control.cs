@@ -6,10 +6,10 @@ namespace ConwayLifeGame
 {
     public partial class Control : Form
     {
-        private Bitmap previewBitmap;
-        Graphics graphics;
-        private SolidBrush brush;
-        private SolidBrush rbrush;
+        readonly private Bitmap previewBitmap;
+        readonly Graphics graphics;
+        readonly private SolidBrush brush;
+        readonly private SolidBrush rbrush;
         private Size size;
 
         public Control()
@@ -23,6 +23,11 @@ namespace ConwayLifeGame
             PresetSelect.Maximum = Map.PresetNum - 1;
             PreviewPictureBox_Paint();
             MouseStateClick.Checked = true;
+        }
+
+        private void PreviewPictureBox_SizeChanged(object sender, EventArgs e)
+        {
+            size = PreviewPictureBox.Size;
         }
 
         private void PreviewPictureBox_Paint()
@@ -78,17 +83,20 @@ namespace ConwayLifeGame
             DirectionSelect.Value = Map.SelectedDirection;
             Timer.Value = Map.Timer;
             MapScale.Value = Map.Scale;
+            Program.SetMainLabel("Map reset", 1500);
         }
 
         private void PresetSelect_ValueChanged(object sender, EventArgs e)
         {
             Map.SelectedPreset = (int)PresetSelect.Value;
             PreviewPictureBox_Paint();
+            Program.SetMainLabel("Selected preset: " + Map.SelectedPreset, 1000);
         }
 
         private void DirectionSelect_ValueChanged(object sender, EventArgs e)
         {
             Map.SelectedDirection = (int)DirectionSelect.Value;
+            Program.SetMainLabel("Selected direction: " + Map.SelectedDirection, 1000);
         }
 
         private void XPivot_ValueChanged(object sender, EventArgs e)
@@ -113,6 +121,7 @@ namespace ConwayLifeGame
         {
             Map.Timer = (int)Timer.Value;
             Program.main.ClacTimer.Interval = Map.Timer;
+            Program.SetMainLabel("Timer: " + Map.Timer, 500);
         }
 
         private void MouseState_CheckedChanged(object sender, EventArgs e)
@@ -123,6 +132,7 @@ namespace ConwayLifeGame
             else if (MouseStateDrag.Checked) Map.MouseInfo.state = Map.MouseState.drag;
             else if (MouseStateSelect.Checked) { Map.MouseInfo.state = Map.MouseState.select; StartStop_Click(null, null); }
             if (!MouseStateSelect.Checked) Map.MouseInfo.select_first = Map.MouseInfo.select_second = new Point();
+            Program.SetMainLabel("Mouse function: " + Map.MouseInfo.state.ToString(), 1000);
         }
     }
 }

@@ -87,6 +87,7 @@ namespace ConwayLifeGame
             this.PreviewPictureBox.Size = new System.Drawing.Size(144, 90);
             this.PreviewPictureBox.TabIndex = 0;
             this.PreviewPictureBox.TabStop = false;
+            this.PreviewPictureBox.SizeChanged += new System.EventHandler(this.PreviewPictureBox_SizeChanged);
             // 
             // label3
             // 

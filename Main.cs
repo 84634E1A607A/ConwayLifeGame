@@ -1,7 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Data;
-using System.Text;
 using System.Windows.Forms;
 using SharpDX;
 using SharpDX.Direct2D1;
@@ -40,7 +37,7 @@ namespace ConwayLifeGame
         {
             Program.control.Show();
             Program.control.Focus();
-            Program.SetMainLabel("Control window shown", 1000);
+            Task.Run( () => Program.SetMainLabel("Control window shown", 1000));
         }
 
         private void FileExit_Click(object sender, EventArgs e)
@@ -342,14 +339,14 @@ namespace ConwayLifeGame
 
         private void Main_KeyDown(object sender, KeyEventArgs e)
         {
-            int move_length = 40;
+            const int move_length = 40;
             if (e.Control || e.Alt || e.Shift) { e.Handled = false; return; }
             switch (e.KeyCode)
             {
                 case Keys.B:
                     {
-                        Map.KeybdInputState = Map.KeyboardInputState.bulitin;
-                        Program.SetMainLabel("Press a key to select builtin...");
+                        Map.KeybdInputState = Map.KeyboardInputState.preset;
+                        Program.SetMainLabel("Press a key to select preset...");
                         break;
                     }
                 case Keys.D:
@@ -376,38 +373,36 @@ namespace ConwayLifeGame
                     }
                 case Keys.Left:
                     {
-                        Program.control.XPivot.Value -= move_length / Map.Scale;
-                        Program.SetMainLabel("X pivot: " + Program.control.XPivot.Value, 500);
+                        Program.control.XPivot.Value -= move_length / Map.Scale + 1;
+                        Program.SetMainLabel("X pivot: " + Map.XPivot, 500);
                         break;
                     }
                 case Keys.Right:
                     {
-                        Program.control.XPivot.Value += move_length / Map.Scale;
-                        Program.SetMainLabel("X pivot: " + Program.control.XPivot.Value, 500);
+                        Program.control.XPivot.Value += move_length / Map.Scale + 1;
+                        Program.SetMainLabel("X pivot: " + Map.XPivot, 500);
                         break;
                     }
                 case Keys.Up:
                     {
-                        Program.control.YPivot.Value -= move_length / Map.Scale;
-                        Program.SetMainLabel("Y pivot: " + Program.control.YPivot.Value, 500);
+                        Program.control.YPivot.Value -= move_length / Map.Scale + 1;
+                        Program.SetMainLabel("Y pivot: " + Map.YPivot, 500);
                         break;
                     }
                 case Keys.Down:
                     {
-                        Program.control.YPivot.Value += move_length / Map.Scale;
-                        Program.SetMainLabel("Y pivot: " + Program.control.YPivot.Value, 500);
+                        Program.control.YPivot.Value += move_length / Map.Scale + 1;
+                        Program.SetMainLabel("Y pivot: " + Map.YPivot, 500);
                         break;
                     }
                 case Keys.Oemplus:
                     {
                         Program.control.Timer.Value = Program.control.Timer.Value - 5 >= Program.control.Timer.Minimum ? Program.control.Timer.Value - 5 : Program.control.Timer.Minimum;
-                        Program.SetMainLabel("Timer: " + Program.control.Timer.Value, 500);
                         break;
                     }
                 case Keys.OemMinus:
                     {
                         Program.control.Timer.Value = Program.control.Timer.Value + 5 <= Program.control.Timer.Maximum ? Program.control.Timer.Value + 5 : Program.control.Timer.Maximum;
-                        Program.SetMainLabel("Timer: " + Program.control.Timer.Value, 500);
                         break;
                     }
                 default:
@@ -417,15 +412,16 @@ namespace ConwayLifeGame
                         switch (Map.KeybdInputState)
                         {
                             case Map.KeyboardInputState.normal: { e.Handled = false; return; }
-                            case Map.KeyboardInputState.bulitin:
+                            case Map.KeyboardInputState.preset:
                                 {
                                     try { Program.control.PresetSelect.Value = e.KeyCode - Keys.D0; }
-                                    catch (ArgumentOutOfRangeException) { }
+                                    catch (ArgumentOutOfRangeException) { Program.SetMainLabel("Out of range", 1000); }
                                     break;
                                 }
                             case Map.KeyboardInputState.direction:
                                 {
-                                    Program.control.DirectionSelect.Value = e.KeyCode - Keys.D0;
+                                    try { Program.control.DirectionSelect.Value = e.KeyCode - Keys.D0; }
+                                    catch (ArgumentOutOfRangeException) { Program.SetMainLabel("Out of range", 1000); }
                                     break;
                                 }
                         }
@@ -437,18 +433,6 @@ namespace ConwayLifeGame
         }
 
         private void Main_FormClosed(object sender, FormClosedEventArgs e) { }
-        /*{
-            PaintTools.graphics.Dispose();
-            PaintTools.bkgndPen.Dispose();
-            PaintTools.bkgndBitmap.Dispose();
-            PaintTools.mainPicBitmap.Dispose();
-            PaintTools.copyPen.Dispose();
-            PaintTools.copyBrush.Dispose();
-            PaintTools.mapPicBitmap.Dispose();
-            PaintTools.selectCellPen.Dispose();
-            PaintTools.selectRectPen.Dispose();
-            PaintTools.selectRectBrush.Dispose();
-        }*/
 
         private void EditCreateRandom_Click(object sender, EventArgs e)
         {
@@ -457,6 +441,7 @@ namespace ConwayLifeGame
             {
                 Map.AddRgnInfo.lastMouseState = Map.MouseInfo.state;
                 Program.control.MouseStateSelect.Checked = true;
+                Program.SetMainLabel("Create a random rectangle: Drag to select the rectangle");
             }
             else
             {
@@ -470,6 +455,7 @@ namespace ConwayLifeGame
                 Map.AddDeleteRegion(p1, p2);
                 Map.MouseInfo.select_first = Map.MouseInfo.select_second = new System.Drawing.Point();
                 Map.AddRgnInfo.state = Map.AddRegionState.normal;
+                Program.SetMainLabel("Random rectangle created", 1000);
             }
         }
 
@@ -480,6 +466,7 @@ namespace ConwayLifeGame
             {
                 Map.AddRgnInfo.lastMouseState = Map.MouseInfo.state;
                 Program.control.MouseStateSelect.Checked = true;
+                Program.SetMainLabel("Create a solid rectangle: Drag to select the rectangle");
             }
             else
             {
@@ -493,6 +480,7 @@ namespace ConwayLifeGame
                 Map.AddDeleteRegion(p1, p2);
                 Map.MouseInfo.select_first = Map.MouseInfo.select_second = new System.Drawing.Point();
                 Map.AddRgnInfo.state = Map.AddRegionState.normal;
+                Program.SetMainLabel("Solid rectangle created", 1000);
             }
         }
 
@@ -503,6 +491,7 @@ namespace ConwayLifeGame
             {
                 Map.AddRgnInfo.lastMouseState = Map.MouseInfo.state;
                 Program.control.MouseStateSelect.Checked = true;
+                Program.SetMainLabel("Delete a rectangle: Drag to select the rectangle");
             }
             else
             {
@@ -516,6 +505,7 @@ namespace ConwayLifeGame
                 Map.AddDeleteRegion(p1, p2);
                 Map.MouseInfo.select_first = Map.MouseInfo.select_second = new System.Drawing.Point();
                 Map.AddRgnInfo.state = Map.AddRegionState.normal;
+                Program.SetMainLabel("Rectangle deleted", 1000);
             }
         }
 
@@ -530,8 +520,19 @@ namespace ConwayLifeGame
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 string fname = openFileDialog.FileName;
-                if (fname.EndsWith(".lfs")) Map.LoadLFS(fname);
-                if (fname.EndsWith(".lf")) Map.LoadLF(fname);
+                Program.SetMainLabel("Loading file " + fname);
+                try
+                {
+                    if (fname.EndsWith(".lfs")) Map.LoadLFS(fname);
+                    if (fname.EndsWith(".lf")) Map.LoadLF(fname);
+                    Program.SetMainLabel("File loaded", 1000);
+                } 
+                catch (Exception exception)
+                {
+                    Program.control.Reset_Click(null, null);
+                    MessageBox.Show(exception.Message, "Error", MessageBoxButtons.OK);
+                    Program.SetMainLabel("Load failed", 1000);
+                }
             }
         }
 
@@ -558,6 +559,7 @@ namespace ConwayLifeGame
             Map.CopyInfo.second = new System.Drawing.Point(xc, yc);
             Map.CopyInfo.state = true;
             Map.MouseInfo.select_first = Map.MouseInfo.select_second = new System.Drawing.Point();
+            Program.SetMainLabel("Select a cell and paste");
         }
 
         private void EditPaste_Click(object sender, EventArgs e)
@@ -569,6 +571,7 @@ namespace ConwayLifeGame
             int yc = (int)((Map.MouseInfo.select_first.Y - mid_y + 0x1000 * Map.Scale) / Map.Scale - 0x1000 + Map.YPivot);
             Map.Paste(xc, yc);
             Map.CopyInfo.state = false;
+            Program.SetMainLabel("Pasted", 1000);
         }
 
         private void MainPanel_SizeChanged(object sender, EventArgs e)
