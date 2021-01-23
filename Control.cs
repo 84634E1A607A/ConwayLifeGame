@@ -167,7 +167,7 @@ namespace ConwayLifeGame
             else if (MouseStatePen.Checked) Map.MouseInfo.state = Map.MouseState.pen;
             else if (MouseStateEraser.Checked) Map.MouseInfo.state = Map.MouseState.eraser;
             else if (MouseStateDrag.Checked) Map.MouseInfo.state = Map.MouseState.drag;
-            else if (MouseStateSelect.Checked) { Map.MouseInfo.state = Map.MouseState.select; StartStop_Click(null, null); }
+            else if (MouseStateSelect.Checked) { Map.MouseInfo.state = Map.MouseState.select; if (Map.Started) StartStop_Click(null, null); }
             if (!MouseStateSelect.Checked) Map.MouseInfo.select_first = Map.MouseInfo.select_second = new Point();
             Program.SetMainLabel("Mouse function: " + Map.MouseInfo.state.ToString(), 1000);
         }
