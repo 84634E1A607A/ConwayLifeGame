@@ -334,7 +334,8 @@ namespace ConwayLifeGame
 
         private void ClacTimer_Tick(object sender, EventArgs e)
         {
-            Map.Calc();
+            //Task.Run(Map.Calc);
+            Map.Calculate();
         }
 
         private void Main_KeyDown(object sender, KeyEventArgs e)
@@ -404,6 +405,12 @@ namespace ConwayLifeGame
                         Program.control.Timer.Value = Program.control.Timer.Value + 5 <= Program.control.Timer.Maximum ? Program.control.Timer.Value + 5 : Program.control.Timer.Maximum;
                         break;
                     }
+                case Keys.Escape:
+                    {
+                        Map.KeybdInputState = Map.KeyboardInputState.normal;
+                        Program.SetMainLabel("");
+                        break;
+                    }
                 default:
                     {
                         if (!(e.KeyCode >= Keys.D0 && e.KeyCode <= Keys.D9)) { e.Handled = false; return; }
@@ -413,12 +420,14 @@ namespace ConwayLifeGame
                             case Map.KeyboardInputState.normal: { e.Handled = false; return; }
                             case Map.KeyboardInputState.preset:
                                 {
+                                    if (Program.control.PresetSelect.Value == e.KeyCode - Keys.D0) { Program.SetMainLabel(""); break; }
                                     try { Program.control.PresetSelect.Value = e.KeyCode - Keys.D0; }
                                     catch (ArgumentOutOfRangeException) { Program.SetMainLabel("Out of range", 1000); }
                                     break;
                                 }
                             case Map.KeyboardInputState.direction:
                                 {
+                                    if (Program.control.DirectionSelect.Value == e.KeyCode - Keys.D0) { Program.SetMainLabel(""); break; }
                                     try { Program.control.DirectionSelect.Value = e.KeyCode - Keys.D0; }
                                     catch (ArgumentOutOfRangeException) { Program.SetMainLabel("Out of range", 1000); }
                                     break;
@@ -587,6 +596,17 @@ namespace ConwayLifeGame
         {
             PaintTimer.Start();
             Program.SetMainLabel("Initiallized", 2000);
+        }
+
+        private void MainStatusStrip_Paint(object sender, PaintEventArgs e)
+        {
+            if (StatusLabel.AutoSize == true)
+            {
+                System.Drawing.Size size = StatusLabel.Size;
+                StatusLabel.AutoSize = false;
+                StatusLabel.Size = size;
+                StatusLabel.Text = "Paused";
+            }
         }
     }
 }

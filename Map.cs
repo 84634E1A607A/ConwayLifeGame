@@ -35,14 +35,13 @@ namespace ConwayLifeGame
             public byte width;
             public string name;
             public Preset() { height = 0; width = 0; name = ""; }
-            public Preset(System.Drawing.Point[] points, byte height, byte width, string name = "")
+            public Preset(in System.Drawing.Point[] points, in byte height, in byte width, string name = "")
             {
                 this.points = points; this.height = height; this.width = width; this.name = name;
             }
         }
         
         private readonly static Head cur = new Head();
-        private readonly static Head nxt = new Head();
         private static List<Preset> presets;
         
         public enum AddRegionState
@@ -108,10 +107,11 @@ namespace ConwayLifeGame
         public static int Timer { get => _timer; set => _timer = value; }
         public static int Scale { get => _scale; set => _scale = value; }
 
-        private static bool _started;
+        private static bool _started, _calculating;
         public static bool Started { get => _started; set => _started = value; }
+        public static bool Calculating { get => _calculating; }
 
-        private static Head Add(int xpos, int ypos, Head acce)
+        private static Head Add(in Head nxt, in int xpos, in int ypos, in Head acce)
         {
             Head px = nxt;
             if (acce != null && acce.x <= xpos) px = acce;
@@ -145,10 +145,10 @@ namespace ConwayLifeGame
             1: 0,1->1;
             2: 0,1->0}
         */
-        public static Head Change(int xpos, int ypos, int type = 0, Head acce = null)
+        private static Head Change(in int xpos, in int ypos, Head head, int type = 0, Head acce = null)
         {
             if (xpos <= 0 || ypos <= 0) return null;
-            Head px = cur;
+            Head px = head ?? cur;
             if (acce != null && acce.x <= xpos) px = acce;
             while (px.next != null && px.next.x <= xpos) px = px.next;
             if (px.x == xpos && px.node != null)
@@ -174,7 +174,39 @@ namespace ConwayLifeGame
             return px;
         }
 
-        public static void ChangeNxt(int xpos, int ypos) 
+        public static void Change(in int xpos, in int ypos)
+        {
+            if (_calculating) { } // Todo
+            else
+            {
+                if (xpos <= 0 || ypos <= 0) return;
+                Head px = cur;
+                while (px.next != null && px.next.x <= xpos) px = px.next;
+                if (px.x == xpos && px.node != null)
+                {
+                    Node py = px.node;
+                    while (py.next != null && py.next.y < ypos) py = py.next;
+                    if (py.next != null && py.next.y == ypos)
+                        Del(py);                            //If the Node already exists: destroy the Node
+                    else
+                    {                                       //If the Node doesn't exist: insert a Node
+                        Node pn = Insert(py);
+                        pn.y = ypos;
+                        pn.state = true;
+                    }
+                }
+                else
+                {                                           //If the row doesn't exist: insert Head and Node
+                    Head pn = Insert(px);
+                    Node pnode = Insert(pn.node);
+                    pn.x = xpos;
+                    pnode.y = ypos;
+                    pnode.state = true;
+                }
+            }
+        }
+
+        public static void ChangeNxt(in Head nxt, in int xpos, in int ypos) 
         {
             Head px = nxt;
             while (px.x < xpos) px = px.next;
@@ -183,8 +215,11 @@ namespace ConwayLifeGame
             py.state = true;
         }
 
-        public static void Calc()
+        public static void Calculate()
         {
+            if (_calculating) return;
+            _calculating = true;
+            Head nxt = new Head();
             Head px = cur.next, pacce = null, ptmp;
             while (px != null)
             {
@@ -195,32 +230,33 @@ namespace ConwayLifeGame
                     int x = px.x;
                     int y = py.y;
                     ptmp = pacce;
-                    ptmp = Add(x - 1, y - 1, ptmp);
+                    ptmp = Add(nxt, x - 1, y - 1, ptmp);
                     pacce = ptmp;
-                    Add(x - 1, y, ptmp);
-                    Add(x - 1, y + 1, ptmp);
-                    ptmp = Add(x, y - 1, ptmp);
-                    Add(x, y, ptmp);
-                    Add(x, y + 1, ptmp);
-                    ptmp = Add(x + 1, y - 1, ptmp);
-                    Add(x + 1, y, ptmp);
-                    Add(x + 1, y + 1, ptmp);
-                    ChangeNxt(x, y);
+                    Add(nxt, x - 1, y, ptmp);
+                    Add(nxt, x - 1, y + 1, ptmp);
+                    ptmp = Add(nxt, x, y - 1, ptmp);
+                    Add(nxt, x, y, ptmp);
+                    Add(nxt, x, y + 1, ptmp);
+                    ptmp = Add(nxt, x + 1, y - 1, ptmp);
+                    Add(nxt, x + 1, y, ptmp);
+                    Add(nxt, x + 1, y + 1, ptmp);
+                    ChangeNxt(nxt, x, y);
                 }
                 px = px.next;
             }
-            Clear(cur);
+            Head calced = new Head();
             px = nxt.next;
             while (px != null)
             {
                 Node py = px.node.next;
-                for (; py != null; py = py.next) if ((py.count == 3) || (py.state && py.count == 4)) Change(px.x, py.y);
+                for (; py != null; py = py.next) if ((py.count == 3) || (py.state && py.count == 4)) Change(px.x, py.y, head: calced);
                 px = px.next;
             }
-            Clear(nxt);
+            cur.next = calced.next;
+            _calculating = false;
         }
 
-        public static void LoadLF(string f)
+        public static void LoadLF(in string f)
         {
             // Stop
             Program.control.Reset_Click(null, null);
@@ -236,7 +272,7 @@ namespace ConwayLifeGame
                 x = reader.ReadUInt32();
                 y = reader.ReadUInt32();
                 if (x == 0xffffffff && y == 0xfffffffd) break;
-                Change((int)x, (int)y);
+                Change((int)x, (int)y, cur);
             }
         }
 
@@ -246,7 +282,7 @@ namespace ConwayLifeGame
             {
                 public int X { get; set; }
                 public int Y { get; set; }
-                public Point(int x, int y) { X = x; Y = y; }
+                public Point(in int x, in int y) { X = x; Y = y; }
             }
             public Point[] P { get; set; }
             public int Xp { get; set; }
@@ -254,7 +290,7 @@ namespace ConwayLifeGame
             public int S { get; set; }
         }
 
-        public static void LoadLFS(string f) 
+        public static void LoadLFS(in string f) 
         {
             Program.control.Reset_Click(null, null);
             
@@ -262,10 +298,10 @@ namespace ConwayLifeGame
             DumpStruct s = JsonSerializer.Deserialize<DumpStruct>(str);
 
             _xPivot = s.Xp; _yPivot = s.Yp; _scale = s.S;
-            foreach (DumpStruct.Point p in s.P) { Change(p.X + _xPivot, p.Y + _yPivot); }
+            foreach (DumpStruct.Point p in s.P) { Change(p.X + _xPivot, p.Y + _yPivot, cur); }
         }
 
-        public static void DumpLFS(string f)
+        public static void DumpLFS(in string f)
         {
             if (_started) Program.control.StartStop_Click(null, null);
 
@@ -295,7 +331,7 @@ namespace ConwayLifeGame
             public static SolidColorBrush brush;
         }
 
-        public static void Draw(RenderTarget renderTarget)
+        public static void Draw(in RenderTarget renderTarget)
         {
             int mid_x = Program.main.MainPanel.Width / 2, mid_y = Program.main.MainPanel.Height / 2;
             int left = (-mid_x) / _scale + _xPivot - 1, right = mid_x / _scale + _xPivot + 1;
@@ -322,7 +358,7 @@ namespace ConwayLifeGame
             }
         }
 
-        private static Head Insert(Head p)
+        private static Head Insert(in Head p)
         {
             Node node = new Node();
             Head pn = new Head { next = p.next, node = node };
@@ -330,14 +366,14 @@ namespace ConwayLifeGame
             return pn;
         }
 
-        private static Node Insert(Node p)
+        private static Node Insert(in Node p)
         {
             Node pn = new Node { next = p.next };
             p.next = pn;
             return pn;
         }
 
-        private static void Del(Node p)
+        private static void Del(in Node p)
         {
             p.next = p.next?.next;
         }
@@ -359,45 +395,45 @@ namespace ConwayLifeGame
             Clear(cur);
         }
 
-        private static void Clear(Head h)
+        private static void Clear(in Head h)
         {
             h.next = null;
         }
 
-        public static void AddPreset(int xpos, int ypos)
+        public static void AddPreset(in int xpos, in int ypos)
         {
             byte s = (byte)presets[_selectedPreset - 1].points.Length, l = (byte)(presets[_selectedPreset - 1].width - 1), h = (byte)(presets[_selectedPreset - 1].height - 1);
             System.Drawing.Point[] cur = presets[_selectedPreset - 1].points;
             switch (_selectedDirection)
             {
                 case 1:
-                    for (byte i = 0; i < s; i++) Change(xpos + cur[i].X, ypos + cur[i].Y, 1);
+                    for (byte i = 0; i < s; i++) Change(xpos + cur[i].X, ypos + cur[i].Y, Map.cur, 1);
                     break;
                 case 2:
-                    for (byte i = 0; i < s; i++) Change(xpos + cur[i].X, ypos + h - cur[i].Y, 1);
+                    for (byte i = 0; i < s; i++) Change(xpos + cur[i].X, ypos + h - cur[i].Y, Map.cur, 1);
                     break;
                 case 3:
-                    for (byte i = 0; i < s; i++) Change(xpos + l - cur[i].X, ypos + cur[i].Y, 1);
+                    for (byte i = 0; i < s; i++) Change(xpos + l - cur[i].X, ypos + cur[i].Y, Map.cur, 1);
                     break;
                 case 4:
-                    for (byte i = 0; i < s; i++) Change(xpos + l - cur[i].X, ypos + h - cur[i].Y, 1);
+                    for (byte i = 0; i < s; i++) Change(xpos + l - cur[i].X, ypos + h - cur[i].Y, Map.cur, 1);
                     break;
                 case 5:
-                    for (byte i = 0; i < s; i++) Change(xpos + cur[i].Y, ypos + cur[i].X, 1);
+                    for (byte i = 0; i < s; i++) Change(xpos + cur[i].Y, ypos + cur[i].X, Map.cur, 1);
                     break;
                 case 6:
-                    for (byte i = 0; i < s; i++) Change(xpos + cur[i].Y, ypos + l - cur[i].X, 1);
+                    for (byte i = 0; i < s; i++) Change(xpos + cur[i].Y, ypos + l - cur[i].X, Map.cur, 1);
                     break;
                 case 7:
-                    for (byte i = 0; i < s; i++) Change(xpos + h - cur[i].Y, ypos + cur[i].X, 1);
+                    for (byte i = 0; i < s; i++) Change(xpos + h - cur[i].Y, ypos + cur[i].X, Map.cur, 1);
                     break;
                 case 8:
-                    for (byte i = 0; i < s; i++) Change(xpos + h - cur[i].Y, ypos + l - cur[i].X, 1);
+                    for (byte i = 0; i < s; i++) Change(xpos + h - cur[i].Y, ypos + l - cur[i].X, Map.cur, 1);
                     break;
             }
         }
 
-        public static void AddDeleteRegion(System.Drawing.Point p1, System.Drawing.Point p2)
+        public static void AddDeleteRegion(in System.Drawing.Point p1, in System.Drawing.Point p2)
         {
             int left = Math.Min(p1.X, p2.X), top = Math.Min(p1.Y, p2.Y), right = Math.Max(p1.X, p2.X), bottom = Math.Max(p1.Y, p2.Y);
             Head acce = null;
@@ -409,14 +445,14 @@ namespace ConwayLifeGame
                         for (int x = left; x <= right; x++)
                             for (int y = bottom; y >= top; y--)
                                 if (r.Next(0, 2) != 0)
-                                    acce = Change(x, y, 1, acce);
+                                    acce = Change(x, y, cur, 1, acce);
                         break;
                     }
                 case AddRegionState.insert:
                     {
                         for (int x = left; x <= right; x++)
                             for (int y = bottom; y >= top; y--)
-                                acce = Change(x, y, 1, acce);
+                                acce = Change(x, y, cur, 1, acce);
                         break;
                     }
 
@@ -424,7 +460,7 @@ namespace ConwayLifeGame
                     {
                         for (int x = left; x <= right; x++)
                             for (int y = bottom; y >= top; y--)
-                                acce = Change(x, y, 2, acce);
+                                acce = Change(x, y, cur, 2, acce);
                         break;
                     }
                 default: break;
@@ -441,111 +477,6 @@ namespace ConwayLifeGame
         {
             InitPresets();
         }
-
-        /*private static void InitPresets()
-        {
-            presets = new Preset[6];
-
-            //{1,1,1},
-            //{1,0,0},
-            //{0,1,0}
-
-            System.Drawing.Point[] preset0 = new System.Drawing.Point[] {
-                new System.Drawing.Point(0, 0), new System.Drawing.Point(0, 1), new System.Drawing.Point(1, 0), new System.Drawing.Point(1, 2), new System.Drawing.Point(2, 0)
-            };
-            presets[0] = new Preset(preset0, 3, 3);
-
-            //{0,1,0,0,1},
-            //{1,0,0,0,0},
-            //{1,0,0,0,1},
-            //{1,1,1,1,0}	
-
-            System.Drawing.Point[] preset1 = new System.Drawing.Point[] {
-                new System.Drawing.Point(0, 1), new System.Drawing.Point(0, 2), new System.Drawing.Point(0, 3), new System.Drawing.Point(1, 0), new System.Drawing.Point(1, 3), new System.Drawing.Point(2, 3), new System.Drawing.Point(3, 3), new System.Drawing.Point(4, 0), new System.Drawing.Point(4, 2),
-            };
-            presets[1] = new Preset(preset1, 4, 5);
-
-            //
-            //{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0},
-            //{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0},
-            //{0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1},
-            //{0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1},
-            //{1,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-            //{1,1,0,0,0,0,0,0,0,0,1,0,0,0,1,0,1,1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0},
-            //{0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0},
-            //{0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-            //{0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
-            //
-
-            System.Drawing.Point[] preset2 = new System.Drawing.Point[] {
-                new System.Drawing.Point(0, 4), new System.Drawing.Point(0, 5), new System.Drawing.Point(1, 4), new System.Drawing.Point(1, 5),
-                new System.Drawing.Point(10, 4), new System.Drawing.Point(10, 5), new System.Drawing.Point(10, 6), new System.Drawing.Point(11, 3), new System.Drawing.Point(11, 7), new System.Drawing.Point(12, 2), new System.Drawing.Point(12, 8), new System.Drawing.Point(13, 2), new System.Drawing.Point(13, 8),
-                new System.Drawing.Point(14, 5), new System.Drawing.Point(15, 3), new System.Drawing.Point(15, 7), new System.Drawing.Point(16, 4), new System.Drawing.Point(16, 5), new System.Drawing.Point(16, 6), new System.Drawing.Point(17, 5),
-                new System.Drawing.Point(20, 2), new System.Drawing.Point(20, 3), new System.Drawing.Point(20, 4), new System.Drawing.Point(21, 2), new System.Drawing.Point(21, 3), new System.Drawing.Point(21, 4), new System.Drawing.Point(22, 1), new System.Drawing.Point(22, 5),
-                new System.Drawing.Point(24, 0), new System.Drawing.Point(24, 1), new System.Drawing.Point(24, 5), new System.Drawing.Point(24, 6),
-                new System.Drawing.Point(34, 2), new System.Drawing.Point(34, 3), new System.Drawing.Point(35, 2), new System.Drawing.Point(35, 3),
-            };
-            presets[2] = new Preset(preset2, 9, 36);
-
-            //
-            //{0,0,0,0,0,0,1,0,0,0,0,0,0},
-            //{0,0,0,0,0,1,0,1,0,0,0,0,0},
-            //{0,0,0,0,0,1,0,1,0,0,0,0,0},
-            //{0,0,0,0,0,0,1,0,0,0,0,0,0},
-            //{0,0,0,0,0,0,0,0,0,0,0,0,0},
-            //{0,1,1,0,0,0,0,0,0,0,1,1,0},
-            //{1,0,0,1,0,0,0,0,0,1,0,0,1},
-            //{0,1,1,0,0,0,0,0,0,0,1,1,0},
-            //{0,0,0,0,0,0,0,0,0,0,0,0,0},
-            //{0,0,0,0,0,0,1,0,0,0,0,0,0},
-            //{0,0,0,0,0,1,0,1,0,0,0,0,0},
-            //{0,0,0,0,0,1,0,1,0,0,0,0,0},
-            //{0,0,0,0,0,0,1,0,0,0,0,0,0}
-            //
-
-            System.Drawing.Point[] preset3 = new System.Drawing.Point[] {
-                new System.Drawing.Point(0, 6), new System.Drawing.Point(1, 5), new System.Drawing.Point(1, 7), new System.Drawing.Point(2, 5), new System.Drawing.Point(2, 7), new System.Drawing.Point(3, 6),
-                new System.Drawing.Point(5, 1), new System.Drawing.Point(5, 2), new System.Drawing.Point(6, 0), new System.Drawing.Point(6, 3), new System.Drawing.Point(7, 1), new System.Drawing.Point(7, 2),
-                new System.Drawing.Point(5, 10), new System.Drawing.Point(5, 11), new System.Drawing.Point(6, 9), new System.Drawing.Point(6, 12), new System.Drawing.Point(7, 10), new System.Drawing.Point(7, 11),
-                new System.Drawing.Point(9, 6), new System.Drawing.Point(10, 5), new System.Drawing.Point(10, 7), new System.Drawing.Point(11, 5), new System.Drawing.Point(11, 7), new System.Drawing.Point(12, 6),
-            };
-            presets[3] = new Preset(preset3, 13, 13);
-
-            //{1, 1, 0, 0}
-            //{1, 1, 0, 0}
-            //{0, 0, 1, 1}
-            //{0, 0, 1, 1}
-
-            System.Drawing.Point[] preset4 = new System.Drawing.Point[] {
-                new System.Drawing.Point(0, 0), new System.Drawing.Point(0, 1), new System.Drawing.Point(1, 0), new System.Drawing.Point(1, 1),
-                new System.Drawing.Point(2, 2), new System.Drawing.Point(2, 3), new System.Drawing.Point(3, 2), new System.Drawing.Point(3, 3),
-            };
-            presets[4] = new Preset(preset4, 4, 4);
-
-            //
-            // {0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0}
-            // {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-            // {1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1}
-            // {1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1}
-            // {1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1}
-            // {0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0}
-            // {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-            // {0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0}
-            // {1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1}
-            // {1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1}
-            // {1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1}
-            // {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-            // {0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0}
-            //
-
-            System.Drawing.Point[] preset5 = new System.Drawing.Point[] {
-                new System.Drawing.Point(0, 2), new System.Drawing.Point(0, 3), new System.Drawing.Point(0, 4), new System.Drawing.Point(2, 0), new System.Drawing.Point(3, 0), new System.Drawing.Point(4, 0), new System.Drawing.Point(5, 2), new System.Drawing.Point(5, 3), new System.Drawing.Point(5, 4), new System.Drawing.Point(2, 5), new System.Drawing.Point(3, 5), new System.Drawing.Point(4, 5),
-                new System.Drawing.Point(0, 8), new System.Drawing.Point(0, 9), new System.Drawing.Point(0, 10), new System.Drawing.Point(2, 7), new System.Drawing.Point(3, 7), new System.Drawing.Point(4, 7), new System.Drawing.Point(5, 8), new System.Drawing.Point(5, 9), new System.Drawing.Point(5, 10), new System.Drawing.Point(2, 12), new System.Drawing.Point(3, 12), new System.Drawing.Point(4, 12),
-                new System.Drawing.Point(7, 2), new System.Drawing.Point(7, 3), new System.Drawing.Point(7, 4), new System.Drawing.Point(8, 0), new System.Drawing.Point(9, 0), new System.Drawing.Point(10, 0), new System.Drawing.Point(12, 2), new System.Drawing.Point(12, 3), new System.Drawing.Point(12, 4), new System.Drawing.Point(8, 5), new System.Drawing.Point(9, 5), new System.Drawing.Point(10, 5),
-                new System.Drawing.Point(7, 8), new System.Drawing.Point(7, 9), new System.Drawing.Point(7, 10), new System.Drawing.Point(8, 7), new System.Drawing.Point(9, 7), new System.Drawing.Point(10, 7), new System.Drawing.Point(12, 8), new System.Drawing.Point(12, 9), new System.Drawing.Point(12, 10), new System.Drawing.Point(8, 12), new System.Drawing.Point(9, 12), new System.Drawing.Point(10, 12),
-            };
-            presets[5] = new Preset(preset5, 13, 13);
-        }*/
 
         private static void InitPresets()
         {
@@ -566,7 +497,7 @@ namespace ConwayLifeGame
             }
         }
 
-        private static void LoadPreset(string f)
+        private static void LoadPreset(in string f)
         {
             string str = File.ReadAllText(f);
             DumpStruct s = JsonSerializer.Deserialize<DumpStruct>(str);
@@ -583,7 +514,7 @@ namespace ConwayLifeGame
 
         public static int PresetNum { get => presets.Count; }
 
-        public static void Paste(int x, int y)
+        public static void Paste(in int x, in int y)
         {
             int left = Math.Min(CopyInfo.first.X, CopyInfo.second.X), top = Math.Min(CopyInfo.first.Y, CopyInfo.second.Y),
                 right = Math.Max(CopyInfo.first.X, CopyInfo.second.X), bottom = Math.Max(CopyInfo.first.Y, CopyInfo.second.Y),
@@ -625,6 +556,7 @@ namespace ConwayLifeGame
                         }
                     case CopyState.merge:
                         {
+                            for (int i = 0; i < pos; i++) Change(x + points[i].X, y + points[i].Y, cur, 1);
                             break;
                         }
                     case CopyState.replace:
@@ -642,7 +574,6 @@ namespace ConwayLifeGame
                         }
                 }
             }
-            for (int i = 0; i < pos; i++) Change(x + points[i].X, y + points[i].Y, 1);
         }
     }
 }
