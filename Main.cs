@@ -334,8 +334,9 @@ namespace ConwayLifeGame
 
         private void ClacTimer_Tick(object sender, EventArgs e)
         {
-            //Task.Run(Map.Calc);
-            Map.Calculate();
+            if (!Map.Calculating)
+                Task.Run(Map.Calculate);
+            //Map.Calculate();
         }
 
         private void Main_KeyDown(object sender, KeyEventArgs e)

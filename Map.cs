@@ -99,6 +99,14 @@ namespace ConwayLifeGame
         }
         public static CopyInformation CopyInfo;
 
+        private struct ModifyPointInfomation
+        {
+            public int X, Y, Type;
+            public ModifyPointInfomation(int x, int y, int type) { X = x; Y = y; Type = type; }
+        }
+
+        private readonly static List<ModifyPointInfomation> _modifyPointList = new List<ModifyPointInfomation>();
+
         private static int _selectedPreset = 1, _selectedDirection = 1, _xPivot = 0x08000000, _yPivot = 0x08000000, _timer = 100, _scale = 10;
         public static int SelectedPreset { get => _selectedPreset; set => _selectedPreset = value; }
         public static int SelectedDirection { get => _selectedDirection; set => _selectedDirection = value; }
@@ -111,7 +119,7 @@ namespace ConwayLifeGame
         public static bool Started { get => _started; set => _started = value; }
         public static bool Calculating { get => _calculating; }
 
-        private static Head Add(in Head nxt, in int xpos, in int ypos, in Head acce)
+        private static Head AddInNextWhenCalculating(in Head nxt, in int xpos, in int ypos, in Head acce)
         {
             Head px = nxt;
             if (acce != null && acce.x <= xpos) px = acce;
@@ -174,9 +182,13 @@ namespace ConwayLifeGame
             return px;
         }
 
-        public static void Change(in int xpos, in int ypos)
+        public static void Change(in int xpos, in int ypos, in int type = 1)
         {
-            if (_calculating) { } // Todo
+            if (_calculating)
+            {
+                _modifyPointList.Add(new ModifyPointInfomation(xpos, ypos, type));
+                return;
+            }
             else
             {
                 if (xpos <= 0 || ypos <= 0) return;
@@ -186,16 +198,15 @@ namespace ConwayLifeGame
                 {
                     Node py = px.node;
                     while (py.next != null && py.next.y < ypos) py = py.next;
-                    if (py.next != null && py.next.y == ypos)
-                        Del(py);                            //If the Node already exists: destroy the Node
-                    else
+                    if (py.next != null && py.next.y == ypos) { if (type != 1) Del(py); }  //If the Node already exists: destroy the Node
+                    else if (type != 2)
                     {                                       //If the Node doesn't exist: insert a Node
                         Node pn = Insert(py);
                         pn.y = ypos;
                         pn.state = true;
                     }
                 }
-                else
+                else if (type != 2)
                 {                                           //If the row doesn't exist: insert Head and Node
                     Head pn = Insert(px);
                     Node pnode = Insert(pn.node);
@@ -230,16 +241,16 @@ namespace ConwayLifeGame
                     int x = px.x;
                     int y = py.y;
                     ptmp = pacce;
-                    ptmp = Add(nxt, x - 1, y - 1, ptmp);
+                    ptmp = AddInNextWhenCalculating(nxt, x - 1, y - 1, ptmp);
                     pacce = ptmp;
-                    Add(nxt, x - 1, y, ptmp);
-                    Add(nxt, x - 1, y + 1, ptmp);
-                    ptmp = Add(nxt, x, y - 1, ptmp);
-                    Add(nxt, x, y, ptmp);
-                    Add(nxt, x, y + 1, ptmp);
-                    ptmp = Add(nxt, x + 1, y - 1, ptmp);
-                    Add(nxt, x + 1, y, ptmp);
-                    Add(nxt, x + 1, y + 1, ptmp);
+                    AddInNextWhenCalculating(nxt, x - 1, y, ptmp);
+                    AddInNextWhenCalculating(nxt, x - 1, y + 1, ptmp);
+                    ptmp = AddInNextWhenCalculating(nxt, x, y - 1, ptmp);
+                    AddInNextWhenCalculating(nxt, x, y, ptmp);
+                    AddInNextWhenCalculating(nxt, x, y + 1, ptmp);
+                    ptmp = AddInNextWhenCalculating(nxt, x + 1, y - 1, ptmp);
+                    AddInNextWhenCalculating(nxt, x + 1, y, ptmp);
+                    AddInNextWhenCalculating(nxt, x + 1, y + 1, ptmp);
                     ChangeNxt(nxt, x, y);
                 }
                 px = px.next;
@@ -254,6 +265,15 @@ namespace ConwayLifeGame
             }
             cur.next = calced.next;
             _calculating = false;
+            ApplyModifiedPoints();
+        }
+
+        private static void ApplyModifiedPoints()
+        {
+            if (_calculating) throw new InvalidOperationException("Cannot apply modified points when calculating");
+            foreach (ModifyPointInfomation infomation in _modifyPointList)
+                Change(infomation.X, infomation.Y, infomation.Type);
+            _modifyPointList.Clear();
         }
 
         public static void LoadLF(in string f)
