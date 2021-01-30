@@ -41,7 +41,7 @@ namespace ConwayLifeGame
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message + "\r\n" + e.StackTrace, "Exception unhandled");
+                MessageBox.Show(e.Message + "\r\n" + e.StackTrace, e.GetType() + " unhandled");
                 throw;
             }
         }
