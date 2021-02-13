@@ -109,6 +109,9 @@ namespace ConwayLifeGame
             System.Drawing.Size size = MainPanel.Size;
             int mid_x = size.Width / 2, mid_y = size.Height / 2, Scale = Map.Scale;
 
+            //  Blocks
+            Map.Draw(target);
+
             //  Lines
             if (PaintTools.bkgndSize != target.Size || PaintTools.bkgndScale != Scale)
             {
@@ -132,9 +135,6 @@ namespace ConwayLifeGame
             }
             float width = .05f * Map.Scale;
             target.DrawGeometry(PaintTools.bkgndGeometry, PaintTools.bkgndPen, width);
-
-            //  Blocks
-            Map.Draw(target);
 
             //  Select
             {
