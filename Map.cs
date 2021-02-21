@@ -408,7 +408,7 @@ namespace ConwayLifeGame
         public static void Reset()
         {
             _started = false;
-            _selectedPreset = _selectedDirection = 0;
+            _selectedPreset = _selectedDirection = 1;
             _xPivot = _yPivot = 0x08000000;
             _timer = 100;
             _scale = 10;
